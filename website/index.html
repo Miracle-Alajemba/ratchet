@@ -2,15 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <title>Ratchet 🔒 | Spec-to-Verified-Code Gate for AI Coding Agents</title>
   <meta name="description" content="Stop AI coding agents from claiming 'Done!' until real headless Chrome verifies every requirement via TestMu AI Kane CLI and MCP.">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔒</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 28 28%22><rect width=%2228%22 height=%2228%22 rx=%226%22 fill=%22%2309090B%22/><path d=%22M14 6v8l7-4z%22 fill=%22%232563EB%22/><circle cx=%2214%22 cy=%2214%22 r=%223%22 fill=%22%23FFF%22/></svg>">
 
-  <!-- Google Fonts: Instrument Serif, Inter, JetBrains Mono -->
+  <!-- Google Fonts: Instrument Serif, Space Grotesk, Inter, JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
 
   <!-- GSAP 3 & ScrollTrigger -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
@@ -45,25 +45,23 @@
       --emerald-border: #A7F3D0;
       
       --font-serif: 'Instrument Serif', Georgia, serif;
+      --font-display: 'Space Grotesk', -apple-system, sans-serif;
       --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
     }
 
-    html {
+    html, body {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
       scroll-behavior: smooth;
       background-color: var(--bg);
       color: var(--text);
       font-family: var(--font-sans);
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-
-    body {
-      background-color: var(--bg);
-      color: var(--text);
       font-size: 15px;
       line-height: 1.6;
-      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     ::selection {
@@ -78,12 +76,14 @@
 
     /* Architectural Hairline Grid Containers */
     .blueprint-grid {
+      width: 100%;
       max-width: 1360px;
       margin: 0 auto;
       border-left: 1px solid var(--border);
       border-right: 1px solid var(--border);
       background-color: var(--bg);
       position: relative;
+      overflow-x: hidden;
     }
 
     .hairline-b {
@@ -94,16 +94,8 @@
       border-top: 1px solid var(--border);
     }
 
-    .hairline-r {
-      border-right: 1px solid var(--border);
-    }
-
-    .hairline-l {
-      border-left: 1px solid var(--border);
-    }
-
     /* ==========================================================================
-       TOP NAVIGATION BAR
+       CUSTOM GEOMETRIC RATCHET LOGO MARK & NAVBAR
        ========================================================================== */
     .top-nav {
       position: sticky;
@@ -116,19 +108,47 @@
       justify-content: space-between;
       height: 56px;
       padding: 0 24px;
+      width: 100%;
     }
 
     .nav-brand {
       display: flex;
       align-items: center;
-      gap: 12px;
-      font-family: var(--font-mono);
-      font-weight: 700;
-      font-size: 14px;
-      letter-spacing: -0.02em;
+      gap: 10px;
+      min-width: 0;
     }
 
-    .nav-brand .badge-tag {
+    .ratchet-logo-wrapper {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      flex-shrink: 0;
+    }
+
+    .brand-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 17px;
+      letter-spacing: -0.03em;
+      color: var(--text);
+    }
+
+    .version-pill {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 6px;
+      background: var(--cobalt-bg);
+      color: var(--cobalt);
+      border: 1px solid rgba(37, 99, 235, 0.25);
+      border-radius: 4px;
+      letter-spacing: 0.02em;
+    }
+
+    .badge-tag {
+      font-family: var(--font-mono);
       font-size: 10px;
       text-transform: uppercase;
       font-weight: 600;
@@ -142,9 +162,10 @@
     .nav-meta {
       display: flex;
       align-items: center;
-      gap: 20px;
+      gap: 16px;
       font-family: var(--font-mono);
       font-size: 12px;
+      flex-shrink: 0;
     }
 
     .nav-pill {
@@ -181,6 +202,7 @@
       border-radius: 4px;
       transition: all 0.15s ease;
       cursor: pointer;
+      white-space: nowrap;
     }
 
     .btn-clean:hover {
@@ -202,6 +224,7 @@
       border-radius: 4px;
       transition: all 0.15s ease;
       cursor: pointer;
+      white-space: nowrap;
     }
 
     .btn-ghost:hover {
@@ -224,12 +247,15 @@
       text-transform: uppercase;
       letter-spacing: 0.08em;
       color: var(--text-muted);
+      width: 100%;
+      min-width: 0;
     }
 
     .section-label-bar .status-readout {
       display: flex;
       align-items: center;
       gap: 12px;
+      flex-shrink: 0;
     }
 
     /* ==========================================================================
@@ -240,12 +266,7 @@
       grid-template-columns: 1fr 1.15fr;
       min-height: calc(100vh - 56px);
       background: var(--bg);
-    }
-
-    @media (max-width: 1024px) {
-      .hero-container {
-        grid-template-columns: 1fr;
-      }
+      width: 100%;
     }
 
     /* Hero Left: Editorial Statement & CTAs */
@@ -256,6 +277,7 @@
       justify-content: space-between;
       border-right: 1px solid var(--border);
       background: #FFFFFF;
+      min-width: 0;
     }
 
     .hero-tag {
@@ -277,12 +299,13 @@
 
     .hero-title {
       font-family: var(--font-serif);
-      font-size: clamp(40px, 4.6vw, 68px);
-      line-height: 1.05;
+      font-size: clamp(34px, 4.4vw, 68px);
+      line-height: 1.08;
       font-weight: 400;
       color: var(--text);
       letter-spacing: -0.02em;
       margin-bottom: 24px;
+      word-break: break-word;
     }
 
     .hero-title em {
@@ -291,11 +314,11 @@
     }
 
     .hero-description {
-      font-size: 17px;
+      font-size: 16px;
       line-height: 1.65;
       color: var(--text-muted);
       max-width: 520px;
-      margin-bottom: 36px;
+      margin-bottom: 32px;
     }
 
     .hero-description strong {
@@ -308,19 +331,26 @@
       background: var(--bg-subtle);
       border: 1px solid var(--border);
       border-radius: 6px;
-      padding: 12px 16px;
+      padding: 10px 14px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       font-family: var(--font-mono);
-      font-size: 13px;
-      margin-bottom: 32px;
+      font-size: 12px;
+      margin-bottom: 28px;
       max-width: 480px;
+      width: 100%;
+      min-width: 0;
+      gap: 8px;
     }
 
     .cli-install-box code {
       color: var(--text);
       user-select: all;
+      overflow-x: auto;
+      white-space: nowrap;
+      min-width: 0;
+      font-size: 12px;
     }
 
     .copy-btn {
@@ -336,6 +366,7 @@
       align-items: center;
       gap: 4px;
       transition: all 0.15s ease;
+      flex-shrink: 0;
     }
 
     .copy-btn:hover {
@@ -349,6 +380,7 @@
       align-items: center;
       gap: 12px;
       margin-bottom: 40px;
+      flex-wrap: wrap;
     }
 
     .spec-badges-row {
@@ -357,12 +389,14 @@
       gap: 16px;
       padding-top: 24px;
       border-top: 1px solid var(--border);
+      width: 100%;
     }
 
     .spec-stat-item {
       display: flex;
       flex-direction: column;
       gap: 4px;
+      min-width: 0;
     }
 
     .spec-stat-item .stat-num {
@@ -378,6 +412,9 @@
       color: var(--text-dim);
       text-transform: uppercase;
       letter-spacing: 0.04em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     /* Hero Right: Interactive Split-Pane Workbench */
@@ -386,6 +423,8 @@
       flex-direction: column;
       background: var(--bg-subtle);
       position: relative;
+      min-width: 0;
+      width: 100%;
     }
 
     .workbench-header {
@@ -397,6 +436,7 @@
       justify-content: space-between;
       font-family: var(--font-mono);
       font-size: 12px;
+      width: 100%;
     }
 
     .wb-controls {
@@ -419,6 +459,7 @@
       padding: 5px 12px;
       cursor: pointer;
       transition: all 0.15s ease;
+      white-space: nowrap;
     }
 
     .btn-loop:hover {
@@ -432,12 +473,15 @@
       padding: 16px 20px;
       font-family: var(--font-mono);
       font-size: 12px;
-      height: 240px;
+      height: 230px;
       overflow-y: auto;
+      overflow-x: hidden;
       display: flex;
       flex-direction: column;
       gap: 6px;
       line-height: 1.5;
+      min-width: 0;
+      width: 100%;
     }
 
     .stream-line {
@@ -446,6 +490,8 @@
       gap: 10px;
       opacity: 0;
       transform: translateY(4px);
+      word-break: break-word;
+      min-width: 0;
     }
 
     .stream-line.visible {
@@ -493,6 +539,8 @@
       justify-content: center;
       align-items: center;
       position: relative;
+      min-width: 0;
+      width: 100%;
     }
 
     .browser-mock {
@@ -505,6 +553,7 @@
       overflow: hidden;
       position: relative;
       transition: border-color 0.25s ease;
+      min-width: 0;
     }
 
     .browser-mock.state-error {
@@ -521,14 +570,16 @@
       padding: 8px 12px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       font-family: var(--font-mono);
       font-size: 11px;
+      min-width: 0;
     }
 
     .window-dots {
       display: flex;
       gap: 5px;
+      flex-shrink: 0;
     }
 
     .window-dots span {
@@ -546,15 +597,20 @@
       padding: 3px 8px;
       color: var(--text-dim);
       font-size: 10px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
     }
 
     .app-screen {
-      padding: 24px;
-      min-height: 230px;
+      padding: 20px;
+      min-height: 220px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       position: relative;
+      min-width: 0;
     }
 
     .checkout-header {
@@ -563,6 +619,7 @@
       align-items: center;
       padding-bottom: 12px;
       border-bottom: 1px solid var(--border);
+      gap: 8px;
     }
 
     .checkout-title {
@@ -578,10 +635,11 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      flex-shrink: 0;
     }
 
     .promo-input-group {
-      margin: 16px 0;
+      margin: 14px 0;
       display: flex;
       gap: 8px;
     }
@@ -595,6 +653,7 @@
       font-size: 12px;
       background: #FFFFFF;
       outline: none;
+      min-width: 0;
     }
 
     .promo-btn {
@@ -607,16 +666,18 @@
       border: 1px solid var(--text);
       border-radius: 4px;
       cursor: pointer;
+      flex-shrink: 0;
     }
 
     .checkout-status-msg {
       font-family: var(--font-mono);
       font-size: 11px;
-      height: 18px;
+      min-height: 18px;
       display: flex;
       align-items: center;
       gap: 6px;
       color: var(--text-dim);
+      word-break: break-word;
     }
 
     .btn-checkout {
@@ -644,8 +705,8 @@
     /* Red Assertion Overlay */
     .assertion-callout {
       position: absolute;
-      top: 18px;
-      right: 18px;
+      top: 14px;
+      right: 14px;
       background: var(--crimson-bg);
       border: 1px solid var(--crimson-border);
       color: var(--crimson);
@@ -658,6 +719,7 @@
       gap: 6px;
       animation: fadeInCallout 0.2s ease;
       z-index: 10;
+      max-width: calc(100% - 28px);
     }
 
     @keyframes fadeInCallout {
@@ -674,10 +736,10 @@
       border: 2px solid var(--emerald);
       color: var(--emerald);
       background: rgba(236, 253, 245, 0.95);
-      padding: 8px 20px;
+      padding: 8px 18px;
       border-radius: 6px;
       font-family: var(--font-mono);
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 700;
       letter-spacing: 0.1em;
       text-transform: uppercase;
@@ -685,15 +747,16 @@
       display: none;
       z-index: 10;
       text-align: center;
+      white-space: nowrap;
     }
 
     /* ==========================================================================
-       SCROLL-DRIVEN STATE MACHINE (GSAP Pinned Pin & Scrub)
+       SCROLL-DRIVEN STATE MACHINE (GSAP matchMedia: Desktop Pin / Mobile Stack)
        ========================================================================== */
     .state-machine-section {
       position: relative;
       background: var(--bg);
-      min-height: 100vh;
+      width: 100%;
     }
 
     .pin-viewport {
@@ -701,12 +764,6 @@
       grid-template-columns: 460px 1fr;
       min-height: calc(100vh - 40px);
       width: 100%;
-    }
-
-    @media (max-width: 1024px) {
-      .pin-viewport {
-        grid-template-columns: 1fr;
-      }
     }
 
     /* Left: Mechanical SVG Ratchet Gear & Pawl */
@@ -717,6 +774,7 @@
       justify-content: space-between;
       border-right: 1px solid var(--border);
       background: #FFFFFF;
+      min-width: 0;
     }
 
     .gear-readout-header {
@@ -742,13 +800,15 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 30px 0;
+      padding: 24px 0;
       position: relative;
+      width: 100%;
     }
 
     #ratchetGearSvg {
-      width: 260px;
-      height: 260px;
+      width: 240px;
+      height: 240px;
+      max-width: 100%;
       transform-origin: 130px 130px;
     }
 
@@ -757,6 +817,7 @@
       align-items: center;
       justify-content: space-between;
       width: 100%;
+      max-width: 260px;
       background: var(--bg-subtle);
       border: 1px solid var(--border);
       border-radius: 4px;
@@ -775,12 +836,14 @@
 
     /* Right: 4 Sequential Real States */
     .stage-content-stream {
-      padding: 48px 60px;
+      padding: 48px 56px;
       display: flex;
       flex-direction: column;
       justify-content: center;
       background: var(--bg-subtle);
       position: relative;
+      min-width: 0;
+      width: 100%;
     }
 
     .stage-card {
@@ -788,6 +851,8 @@
       opacity: 0;
       transform: translateY(16px);
       transition: opacity 0.3s ease, transform 0.3s ease;
+      min-width: 0;
+      width: 100%;
     }
 
     .stage-card.active {
@@ -808,33 +873,41 @@
 
     .stage-headline {
       font-family: var(--font-serif);
-      font-size: 42px;
+      font-size: clamp(28px, 3.2vw, 42px);
       font-weight: 400;
       color: var(--text);
-      line-height: 1.1;
+      line-height: 1.15;
       letter-spacing: -0.02em;
       margin-bottom: 16px;
+      word-break: break-word;
     }
 
     .stage-subtext {
-      font-size: 16px;
+      font-size: 15px;
       color: var(--text-muted);
       line-height: 1.6;
       max-width: 620px;
-      margin-bottom: 28px;
+      margin-bottom: 24px;
     }
 
     .stage-code-block {
       background: #FFFFFF;
       border: 1px solid var(--border);
       border-radius: 6px;
-      padding: 16px 20px;
+      padding: 14px 18px;
       font-family: var(--font-mono);
       font-size: 12px;
       line-height: 1.6;
       color: var(--text);
       overflow-x: auto;
-      position: relative;
+      max-width: 100%;
+      width: 100%;
+      min-width: 0;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .code-line {
+      white-space: pre;
     }
 
     .code-line-num {
@@ -875,13 +948,15 @@
       border-radius: 2px;
     }
 
-    /* Step Selector Pills at the Bottom */
+    /* Step Selector Strip */
     .step-selector-strip {
       display: flex;
       gap: 8px;
       margin-top: 32px;
       border-top: 1px solid var(--border);
       padding-top: 24px;
+      width: 100%;
+      min-width: 0;
     }
 
     .step-tab-btn {
@@ -896,6 +971,7 @@
       cursor: pointer;
       text-align: left;
       transition: all 0.15s ease;
+      min-width: 0;
     }
 
     .step-tab-btn:hover {
@@ -918,24 +994,28 @@
        ========================================================================== */
     .spec-sheet-section {
       background: #FFFFFF;
+      width: 100%;
     }
 
     .spec-container {
       padding: 64px 48px;
+      width: 100%;
+      min-width: 0;
     }
 
     .spec-header-row {
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
-      margin-bottom: 36px;
+      margin-bottom: 32px;
       flex-wrap: wrap;
-      gap: 20px;
+      gap: 16px;
+      width: 100%;
     }
 
     .spec-title-group h2 {
       font-family: var(--font-serif);
-      font-size: 40px;
+      font-size: clamp(30px, 3.5vw, 40px);
       font-weight: 400;
       color: var(--text);
       letter-spacing: -0.02em;
@@ -954,10 +1034,12 @@
       border-radius: 6px;
       padding: 3px;
       gap: 2px;
+      flex-wrap: wrap;
+      max-width: 100%;
     }
 
     .spec-tab-trigger {
-      padding: 6px 16px;
+      padding: 6px 14px;
       font-family: var(--font-mono);
       font-size: 12px;
       font-weight: 500;
@@ -967,6 +1049,7 @@
       border-radius: 4px;
       cursor: pointer;
       transition: all 0.15s ease;
+      white-space: nowrap;
     }
 
     .spec-tab-trigger.active {
@@ -981,11 +1064,15 @@
       border-radius: 6px;
       background: var(--bg-subtle);
       overflow: hidden;
+      width: 100%;
+      min-width: 0;
     }
 
     .spec-content-panel {
       display: none;
       padding: 24px;
+      width: 100%;
+      min-width: 0;
     }
 
     .spec-content-panel.active {
@@ -998,12 +1085,19 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
+    .spec-table-wrapper {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin-bottom: 12px;
+    }
+
     .spec-table {
       width: 100%;
+      min-width: 600px;
       border-collapse: collapse;
       font-family: var(--font-mono);
       font-size: 13px;
-      margin-bottom: 20px;
     }
 
     .spec-table th {
@@ -1036,6 +1130,7 @@
       border: 1px solid rgba(37, 99, 235, 0.15);
       padding: 2px 8px;
       border-radius: 4px;
+      white-space: nowrap;
     }
 
     /* ==========================================================================
@@ -1044,7 +1139,7 @@
     .colophon-section {
       background: var(--bg-subtle);
       border-top: 1px solid var(--border);
-      padding: 40px 48px;
+      padding: 36px 48px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -1053,12 +1148,20 @@
       color: var(--text-muted);
       flex-wrap: wrap;
       gap: 20px;
+      width: 100%;
+    }
+
+    .colophon-brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
     .colophon-links {
       display: flex;
       align-items: center;
-      gap: 24px;
+      gap: 20px;
+      flex-wrap: wrap;
     }
 
     .colophon-links a {
@@ -1088,11 +1191,176 @@
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       z-index: 1000;
       pointer-events: none;
+      max-width: calc(100vw - 48px);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     #copyToast.show {
       transform: translateY(0);
       opacity: 1;
+    }
+
+    /* ==========================================================================
+       MEDIA QUERIES: TABLET & MOBILE RESPONSIVENESS (<= 960px & <= 640px)
+       ========================================================================== */
+    @media (max-width: 960px) {
+      .hero-container {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-narrative {
+        padding: 40px 24px;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .hero-workbench {
+        min-height: auto;
+      }
+
+      .telemetry-pane {
+        height: 200px;
+        padding: 12px 16px;
+      }
+
+      .viewport-pane {
+        padding: 16px;
+      }
+
+      /* Mobile Unpinned State Machine */
+      .pin-viewport {
+        display: flex;
+        flex-direction: column;
+        min-height: auto;
+      }
+
+      .gear-stage-sidebar {
+        padding: 24px 20px;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        position: sticky;
+        top: 56px;
+        z-index: 30;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(8px);
+      }
+
+      .gear-visual-container {
+        padding: 12px 0;
+      }
+
+      #ratchetGearSvg {
+        width: 140px;
+        height: 140px;
+      }
+
+      .gear-telemetry-badge {
+        margin-top: 10px;
+        padding: 6px 10px;
+        font-size: 11px;
+      }
+
+      .stage-content-stream {
+        padding: 32px 20px;
+      }
+
+      /* On mobile, cards are revealed sequentially */
+      .stage-card {
+        display: block !important;
+        opacity: 1 !important;
+        transform: none !important;
+        margin-bottom: 36px;
+        padding-bottom: 32px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .stage-card:last-of-type {
+        border-bottom: none;
+        margin-bottom: 12px;
+      }
+
+      .step-selector-strip {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+      }
+
+      .spec-container {
+        padding: 40px 24px;
+      }
+
+      .colophon-section {
+        padding: 28px 24px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .top-nav {
+        padding: 0 16px;
+      }
+
+      .nav-meta .nav-pill,
+      .badge-tag.nav-hide-mobile {
+        display: none;
+      }
+
+      .section-label-bar {
+        padding: 8px 16px;
+        font-size: 10px;
+      }
+
+      .section-label-bar .status-readout {
+        display: none;
+      }
+
+      .hero-narrative {
+        padding: 32px 16px;
+      }
+
+      .hero-title {
+        font-size: 32px;
+        line-height: 1.12;
+      }
+
+      .spec-badges-row {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .hero-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .hero-actions a {
+        text-align: center;
+        justify-content: center;
+      }
+
+      .stage-headline {
+        font-size: 26px;
+      }
+
+      .stage-content-stream {
+        padding: 24px 16px;
+      }
+
+      .spec-container {
+        padding: 32px 16px;
+      }
+
+      .spec-content-panel {
+        padding: 16px;
+      }
+
+      .colophon-section {
+        padding: 24px 16px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+      }
     }
   </style>
 </head>
@@ -1104,10 +1372,28 @@
     <!-- Top Hairline Navigation Bar -->
     <header class="top-nav hairline-b">
       <div class="nav-brand">
-        <span>RATCHET</span>
-        <span class="badge-tag">v0.1.0-alpha</span>
-        <span class="badge-tag">MCP PROTOCOL</span>
+        <!-- Bespoke 28x28 Geometric Ratchet Mark: Sawtooth Gear + Locking Pawl -->
+        <div class="ratchet-logo-wrapper">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0.5" y="0.5" width="27" height="27" rx="5.5" fill="#FFFFFF" stroke="#E4E4E7" />
+            <!-- Ratchet Circular Outer Profile -->
+            <path d="M 14 5 C 9.03 5 5 9.03 5 14 C 5 18.97 9.03 23 14 23 C 18.97 23 23 18.97 23 14" stroke="#D4D4D8" stroke-width="1.2" stroke-dasharray="2 2" />
+            <!-- Mechanical Sawteeth Wheel in Ink Black -->
+            <path d="M 14 6.8 L 16.5 10 L 13.5 10.5 L 16.8 13.2 L 13.8 14.2 L 17.2 16.8 L 14.5 18.2 L 17.5 21 C 16.4 21.6 15.2 22 14 22 C 9.58 22 6 18.42 6 14 C 6 9.58 9.58 6.8 14 6.8 Z" fill="#09090B" />
+            <!-- Center Axle Pin -->
+            <circle cx="11.5" cy="14" r="2.2" fill="#FFFFFF" stroke="#09090B" stroke-width="1.2" />
+            <!-- Electric Cobalt Locking Pawl Arm -->
+            <path d="M 22.5 7.2 L 16.8 10 L 17.2 12.2 L 20.2 10.8 Z" fill="#2563EB" />
+            <circle cx="22.5" cy="7.2" r="1.8" fill="#2563EB" stroke="#FFFFFF" stroke-width="0.8" />
+            <!-- Leaf Spring Tick -->
+            <path d="M 22.5 7.2 C 24 9.5 23.5 11.5 21.5 13" stroke="#2563EB" stroke-width="1.2" stroke-linecap="round" fill="none" />
+          </svg>
+        </div>
+        <span class="brand-title">ratchet</span>
+        <span class="version-pill">v1.0</span>
+        <span class="badge-tag nav-hide-mobile">MCP PROTOCOL</span>
       </div>
+
       <div class="nav-meta">
         <div class="nav-pill">
           <span class="pulse-dot"></span>
@@ -1115,7 +1401,7 @@
         </div>
         <a href="https://github.com/Miracle-Alajemba/ratchet" target="_blank" rel="noopener noreferrer" class="btn-clean">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
-          GitHub ↗
+          <span>GitHub ↗</span>
         </a>
       </div>
     </header>
@@ -1206,7 +1492,7 @@
                 <span></span><span></span><span></span>
               </div>
               <div class="address-bar">http://localhost:4173/checkout</div>
-              <span id="browserStatusBadge" style="font-size:10px; font-weight:600; color:var(--text-dim);">IDLE</span>
+              <span id="browserStatusBadge" style="font-size:10px; font-weight:600; color:var(--text-dim); flex-shrink:0;">IDLE</span>
             </div>
 
             <!-- Mini App Screen -->
@@ -1296,7 +1582,6 @@
                 <circle cx="130" cy="130" r="92" fill="#FAFAFA" stroke="#09090B" stroke-width="2" />
                 
                 <!-- 12 Sawteeth Geometry -->
-                <!-- Each tooth: slanted leading face, steep trailing face -->
                 <path d="
                   M 130 38 L 140 40 L 148 46 L 143 54
                   L 165 52 L 176 60 L 168 68
@@ -1491,37 +1776,39 @@
           
           <!-- TAB 1: CLI Commands -->
           <div class="spec-content-panel active" id="specTabCli">
-            <table class="spec-table">
-              <thead>
-                <tr>
-                  <th style="width: 25%;">Command</th>
-                  <th style="width: 45%;">Description</th>
-                  <th style="width: 30%;">Exit Code</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><span class="cmd-badge">ratchet sync --prd &lt;file&gt;</span></td>
-                  <td>Parses PRD markdown, extracts acceptance criteria, and generates TestMu AI Kane test scenarios.</td>
-                  <td><code>0</code> on success, <code>1</code> on malformed spec</td>
-                </tr>
-                <tr>
-                  <td><span class="cmd-badge">ratchet verify</span></td>
-                  <td>Runs Kane CLI against live app URL, evaluates assertions, streams NDJSON, and checks ratchet lock.</td>
-                  <td><code>0</code> if verified, <code>1</code> if criteria fail</td>
-                </tr>
-                <tr>
-                  <td><span class="cmd-badge">ratchet verify --json</span></td>
-                  <td>Outputs machine-readable <code>RepairPacket</code> JSON payload directly to stdout for agent consumption.</td>
-                  <td><code>0</code> if verified, <code>1</code> if criteria fail</td>
-                </tr>
-                <tr>
-                  <td><span class="cmd-badge">ratchet hook --install</span></td>
-                  <td>Installs pre-push Git hook enforcing verification before commits reach origin.</td>
-                  <td><code>0</code> on install</td>
-                </tr>
-              </tbody>
-            </table>
+            <div class="spec-table-wrapper">
+              <table class="spec-table">
+                <thead>
+                  <tr>
+                    <th style="width: 28%;">Command</th>
+                    <th style="width: 44%;">Description</th>
+                    <th style="width: 28%;">Exit Code</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><span class="cmd-badge">ratchet sync --prd &lt;file&gt;</span></td>
+                    <td>Parses PRD markdown, extracts acceptance criteria, and generates TestMu AI Kane test scenarios.</td>
+                    <td><code>0</code> on success, <code>1</code> on malformed spec</td>
+                  </tr>
+                  <tr>
+                    <td><span class="cmd-badge">ratchet verify</span></td>
+                    <td>Runs Kane CLI against live app URL, evaluates assertions, streams NDJSON, and checks ratchet lock.</td>
+                    <td><code>0</code> if verified, <code>1</code> if criteria fail</td>
+                  </tr>
+                  <tr>
+                    <td><span class="cmd-badge">ratchet verify --json</span></td>
+                    <td>Outputs machine-readable <code>RepairPacket</code> JSON payload directly to stdout for agent consumption.</td>
+                    <td><code>0</code> if verified, <code>1</code> if criteria fail</td>
+                  </tr>
+                  <tr>
+                    <td><span class="cmd-badge">ratchet hook --install</span></td>
+                    <td>Installs pre-push Git hook enforcing verification before commits reach origin.</td>
+                    <td><code>0</code> on install</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
 
           <!-- TAB 2: MCP Config -->
@@ -1581,8 +1868,18 @@
 
     <!-- COLOPHON FOOTER -->
     <footer class="colophon-section">
-      <div>
-        <span>Ratchet 🔒 — Built on TestMu AI Kane CLI & Model Context Protocol.</span>
+      <div class="colophon-brand-group">
+        <div class="ratchet-logo-wrapper">
+          <svg width="24" height="24" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0.5" y="0.5" width="27" height="27" rx="5.5" fill="#FFFFFF" stroke="#E4E4E7" />
+            <path d="M 14 5 C 9.03 5 5 9.03 5 14 C 5 18.97 9.03 23 14 23 C 18.97 23 23 18.97 23 14" stroke="#D4D4D8" stroke-width="1.2" stroke-dasharray="2 2" />
+            <path d="M 14 6.8 L 16.5 10 L 13.5 10.5 L 16.8 13.2 L 13.8 14.2 L 17.2 16.8 L 14.5 18.2 L 17.5 21 C 16.4 21.6 15.2 22 14 22 C 9.58 22 6 18.42 6 14 C 6 9.58 9.58 6.8 14 6.8 Z" fill="#09090B" />
+            <circle cx="11.5" cy="14" r="2.2" fill="#FFFFFF" stroke="#09090B" stroke-width="1.2" />
+            <path d="M 22.5 7.2 L 16.8 10 L 17.2 12.2 L 20.2 10.8 Z" fill="#2563EB" />
+            <circle cx="22.5" cy="7.2" r="1.8" fill="#2563EB" stroke="#FFFFFF" stroke-width="0.8" />
+          </svg>
+        </div>
+        <span>Ratchet 🔒 — Spec-to-Verified-Code Gate for AI Coding Agents.</span>
       </div>
       <div class="colophon-links">
         <a href="https://github.com/Miracle-Alajemba/ratchet" target="_blank" rel="noopener noreferrer">Repository</a>
@@ -1596,7 +1893,7 @@
   <!-- Minimal Copy Toast -->
   <div id="copyToast">Copied to clipboard</div>
 
-  <!-- SCRIPT: INTERACTIVE WORKBENCH SIMULATION + GSAP SCROLLTRIGGER -->
+  <!-- SCRIPT: INTERACTIVE WORKBENCH SIMULATION + GSAP SCROLLTRIGGER MATCHMEDIA -->
   <script>
     // Copy Snippet Utility
     function copySnippet(text) {
@@ -1625,6 +1922,7 @@
 
     function addTelemetryLine(tagType, tagText, msg) {
       const stream = document.getElementById('telemetryStream');
+      if (!stream) return;
       const line = document.createElement('div');
       line.className = 'stream-line';
       line.innerHTML = `<span class="${tagType}">[${tagText}]</span><span>${msg}</span>`;
@@ -1638,7 +1936,7 @@
       isSimulating = true;
 
       const stream = document.getElementById('telemetryStream');
-      stream.innerHTML = '';
+      if (stream) stream.innerHTML = '';
 
       const browserMock = document.getElementById('browserMock');
       const browserStatusBadge = document.getElementById('browserStatusBadge');
@@ -1651,45 +1949,57 @@
       const provenStamp = document.getElementById('provenStamp');
 
       // Reset initial UI state
-      browserMock.className = 'browser-mock';
-      browserStatusBadge.innerText = 'RUNNING';
-      browserStatusBadge.style.color = 'var(--cobalt)';
-      priceDisplay.innerText = '$100';
-      priceDisplay.style.color = 'var(--text)';
-      promoInput.value = '';
-      checkoutStatusMsg.innerText = 'Enter SAVE20 for $20 off';
-      checkoutStatusMsg.style.color = 'var(--text-dim)';
-      orderBtn.className = 'btn-checkout';
-      orderBtn.innerText = 'Complete Order';
-      assertionCallout.style.display = 'none';
-      provenStamp.style.display = 'none';
+      if (browserMock) browserMock.className = 'browser-mock';
+      if (browserStatusBadge) {
+        browserStatusBadge.innerText = 'RUNNING';
+        browserStatusBadge.style.color = 'var(--cobalt)';
+      }
+      if (priceDisplay) {
+        priceDisplay.innerText = '$100';
+        priceDisplay.style.color = 'var(--text)';
+      }
+      if (promoInput) promoInput.value = '';
+      if (checkoutStatusMsg) {
+        checkoutStatusMsg.innerText = 'Enter SAVE20 for $20 off';
+        checkoutStatusMsg.style.color = 'var(--text-dim)';
+      }
+      if (orderBtn) {
+        orderBtn.className = 'btn-checkout';
+        orderBtn.innerText = 'Complete Order';
+      }
+      if (assertionCallout) assertionCallout.style.display = 'none';
+      if (provenStamp) provenStamp.style.display = 'none';
 
-      // Sequence Timings
       // Step 1: Agent reads PRD
       addTelemetryLine('tag-agent', 'agent', 'Ingesting demo-app/PRD.md acceptance criteria...');
       
       setTimeout(() => {
         addTelemetryLine('tag-kane', 'kane', 'Launching Headless Chrome on http://localhost:4173/checkout');
-        promoInput.value = 'S';
+        if (promoInput) promoInput.value = 'S';
       }, 700);
 
       setTimeout(() => {
-        promoInput.value = 'SAVE20';
+        if (promoInput) promoInput.value = 'SAVE20';
         addTelemetryLine('tag-kane', 'kane', 'Simulating user click: #applyBtn');
-        applyBtn.style.transform = 'scale(0.95)';
-        setTimeout(() => applyBtn.style.transform = 'scale(1)', 150);
+        if (applyBtn) {
+          applyBtn.style.transform = 'scale(0.95)';
+          setTimeout(() => applyBtn.style.transform = 'scale(1)', 150);
+        }
       }, 1400);
 
       // Step 2: Intentional failure state
       setTimeout(() => {
-        // Bug in app: total remains $100
-        priceDisplay.innerText = '$100';
-        checkoutStatusMsg.innerText = 'Promo applied (bug: discount missed)';
-        checkoutStatusMsg.style.color = 'var(--crimson)';
-        browserMock.classList.add('state-error');
-        assertionCallout.style.display = 'flex';
-        browserStatusBadge.innerText = 'ASSERTION FAILED';
-        browserStatusBadge.style.color = 'var(--crimson)';
+        if (priceDisplay) priceDisplay.innerText = '$100';
+        if (checkoutStatusMsg) {
+          checkoutStatusMsg.innerText = 'Promo applied (bug: discount missed)';
+          checkoutStatusMsg.style.color = 'var(--crimson)';
+        }
+        if (browserMock) browserMock.classList.add('state-error');
+        if (assertionCallout) assertionCallout.style.display = 'flex';
+        if (browserStatusBadge) {
+          browserStatusBadge.innerText = 'ASSERTION FAILED';
+          browserStatusBadge.style.color = 'var(--crimson)';
+        }
 
         addTelemetryLine('tag-blocked', 'ratchet', '✖ BLOCKED: Step 2 failed (expected $80, got $100)');
         addTelemetryLine('tag-agent', 'agent', 'Emitted RepairPacket. Isolating checkout.js calculation fault...');
@@ -1698,20 +2008,28 @@
       // Step 3: Agent patches code
       setTimeout(() => {
         addTelemetryLine('tag-agent', 'agent', 'Patching demo-app/checkout.js:14: `total = 100 - 20`');
-        assertionCallout.style.display = 'none';
-        browserStatusBadge.innerText = 'RE-VERIFYING';
-        browserStatusBadge.style.color = 'var(--cobalt)';
+        if (assertionCallout) assertionCallout.style.display = 'none';
+        if (browserStatusBadge) {
+          browserStatusBadge.innerText = 'RE-VERIFYING';
+          browserStatusBadge.style.color = 'var(--cobalt)';
+        }
       }, 3600);
 
       // Step 4: Kane re-verifies successfully
       setTimeout(() => {
-        priceDisplay.innerText = '$80';
-        priceDisplay.style.color = 'var(--emerald)';
-        checkoutStatusMsg.innerText = 'Discount applied: -$20';
-        checkoutStatusMsg.style.color = 'var(--emerald)';
-        browserMock.classList.remove('state-error');
-        browserMock.classList.add('state-success');
-        orderBtn.classList.add('active');
+        if (priceDisplay) {
+          priceDisplay.innerText = '$80';
+          priceDisplay.style.color = 'var(--emerald)';
+        }
+        if (checkoutStatusMsg) {
+          checkoutStatusMsg.innerText = 'Discount applied: -$20';
+          checkoutStatusMsg.style.color = 'var(--emerald)';
+        }
+        if (browserMock) {
+          browserMock.classList.remove('state-error');
+          browserMock.classList.add('state-success');
+        }
+        if (orderBtn) orderBtn.classList.add('active');
 
         addTelemetryLine('tag-kane', 'kane', 'Re-evaluating DOM memory: total === "$80" (PASS)');
         addTelemetryLine('tag-kane', 'kane', 'Simulating user click: #orderBtn');
@@ -1719,10 +2037,12 @@
 
       // Step 5: Order confirmation & Ratchet Locked
       setTimeout(() => {
-        orderBtn.innerText = 'Order Confirmed: $80 paid';
-        provenStamp.style.display = 'block';
-        browserStatusBadge.innerText = 'VERIFIED';
-        browserStatusBadge.style.color = 'var(--emerald)';
+        if (orderBtn) orderBtn.innerText = 'Order Confirmed: $80 paid';
+        if (provenStamp) provenStamp.style.display = 'block';
+        if (browserStatusBadge) {
+          browserStatusBadge.innerText = 'VERIFIED';
+          browserStatusBadge.style.color = 'var(--emerald)';
+        }
 
         addTelemetryLine('tag-locked', 'ratchet', '✔ RATCHET LOCKED: 3/3 acceptance criteria proven in Chrome');
         isSimulating = false;
@@ -1735,7 +2055,7 @@
     });
 
     // =========================================================================
-    // GSAP SCROLLTRIGGER PIN & SCRUB: 01 // THE RATCHET MECHANISM
+    // GSAP MATCHMEDIA: DESKTOP PINNED SCRUB VS MOBILE VERTICAL STACK
     // =========================================================================
     gsap.registerPlugin(ScrollTrigger);
 
@@ -1754,9 +2074,10 @@
 
       const stage = stages[index];
       
-      // Update Title & SVG Readouts
-      document.getElementById('currentStageTitle').innerText = stage.title;
-      document.getElementById('gearAngleReadout').innerText = `${stage.angle.toFixed(1)}°`;
+      const titleElem = document.getElementById('currentStageTitle');
+      const angleElem = document.getElementById('gearAngleReadout');
+      if (titleElem) titleElem.innerText = stage.title;
+      if (angleElem) angleElem.innerText = `${stage.angle.toFixed(1)}°`;
 
       // Animate Gear Rotation
       gsap.to('#gearRotatingGroup', {
@@ -1768,14 +2089,18 @@
 
       // Animate Pawl clicking movement
       const pawlArm = document.getElementById('pawlArm');
-      gsap.timeline()
-        .to(pawlArm, { rotation: -12, transformOrigin: '186px 48px', duration: 0.12, ease: 'power1.out' })
-        .to(pawlArm, { rotation: 0, transformOrigin: '186px 48px', duration: 0.18, ease: 'bounce.out' });
+      if (pawlArm) {
+        gsap.timeline()
+          .to(pawlArm, { rotation: -12, transformOrigin: '186px 48px', duration: 0.12, ease: 'power1.out' })
+          .to(pawlArm, { rotation: 0, transformOrigin: '186px 48px', duration: 0.18, ease: 'bounce.out' });
+      }
 
-      // Update Active Card
-      document.querySelectorAll('.stage-card').forEach((card, idx) => {
-        card.classList.toggle('active', idx === index);
-      });
+      // Update Desktop Active Card (when in desktop mode)
+      if (window.innerWidth > 960) {
+        document.querySelectorAll('.stage-card').forEach((card, idx) => {
+          card.classList.toggle('active', idx === index);
+        });
+      }
 
       // Update Step Tab Buttons
       document.querySelectorAll('.step-tab-btn').forEach((btn, idx) => {
@@ -1784,26 +2109,66 @@
     }
 
     function jumpToStage(stepNumber) {
-      applyStage(stepNumber - 1);
+      const idx = stepNumber - 1;
+      applyStage(idx);
+      if (window.innerWidth <= 960) {
+        const targetCard = document.getElementById(`stageCard${stepNumber}`);
+        if (targetCard) {
+          targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
     }
 
-    // Setup ScrollTrigger Pin on #pinnedSection
-    ScrollTrigger.create({
-      trigger: '#pinnedSection',
-      start: 'top top+=56px',
-      end: '+=2000',
-      pin: true,
-      scrub: 0.8,
-      onUpdate: (self) => {
-        const progress = self.progress; // 0 to 1
-        let stageIdx = 0;
-        if (progress >= 0.75) stageIdx = 3;
-        else if (progress >= 0.50) stageIdx = 2;
-        else if (progress >= 0.25) stageIdx = 1;
-        else stageIdx = 0;
-        
-        applyStage(stageIdx);
-      }
+    // Responsive ScrollTrigger Orchestration
+    const mm = gsap.matchMedia();
+
+    // DESKTOP: Pinned Scroll-Scrubbed Gear + 4-Stage Transition
+    mm.add("(min-width: 961px)", () => {
+      // Ensure only active card is visible initially
+      document.querySelectorAll('.stage-card').forEach((card, idx) => {
+        card.classList.toggle('active', idx === currentStageIndex);
+      });
+
+      const pinTrigger = ScrollTrigger.create({
+        trigger: '#pinnedSection',
+        start: 'top top+=56px',
+        end: '+=2000',
+        pin: true,
+        scrub: 0.8,
+        onUpdate: (self) => {
+          const progress = self.progress;
+          let stageIdx = 0;
+          if (progress >= 0.75) stageIdx = 3;
+          else if (progress >= 0.50) stageIdx = 2;
+          else if (progress >= 0.25) stageIdx = 1;
+          else stageIdx = 0;
+          
+          applyStage(stageIdx);
+        }
+      });
+
+      return () => pinTrigger.kill();
+    });
+
+    // MOBILE / TABLET: Natural vertical stack with individual card triggers
+    mm.add("(max-width: 960px)", () => {
+      // Show all stage cards vertically
+      document.querySelectorAll('.stage-card').forEach((card) => {
+        card.classList.add('active');
+      });
+
+      stages.forEach((stage, idx) => {
+        const cardElem = document.getElementById(`stageCard${stage.id}`);
+        if (cardElem) {
+          ScrollTrigger.create({
+            trigger: cardElem,
+            start: 'top center+=80px',
+            end: 'bottom center',
+            onEnter: () => applyStage(idx),
+            onEnterBack: () => applyStage(idx)
+          });
+        }
+      });
     });
   </script>
 
