@@ -1134,12 +1134,12 @@
     }
 
     /* ==========================================================================
-       FOOTER / COLOPHON
+       CLEAN MINIMAL FOOTER
        ========================================================================== */
-    .colophon-section {
-      background: var(--bg-subtle);
+    .site-footer {
+      background: var(--bg);
       border-top: 1px solid var(--border);
-      padding: 36px 48px;
+      padding: 24px 32px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -1147,30 +1147,23 @@
       font-size: 12px;
       color: var(--text-muted);
       flex-wrap: wrap;
-      gap: 20px;
+      gap: 16px;
       width: 100%;
     }
 
-    .colophon-brand-group {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .colophon-links {
+    .footer-links {
       display: flex;
       align-items: center;
       gap: 20px;
-      flex-wrap: wrap;
     }
 
-    .colophon-links a {
+    .footer-links a {
       color: var(--text);
       text-decoration: underline;
-      text-underline-offset: 4px;
+      text-underline-offset: 3px;
     }
 
-    .colophon-links a:hover {
+    .footer-links a:hover {
       color: var(--cobalt);
     }
 
@@ -1291,8 +1284,8 @@
         padding: 40px 24px;
       }
 
-      .colophon-section {
-        padding: 28px 24px;
+      .site-footer {
+        padding: 20px 24px;
       }
     }
 
@@ -1355,11 +1348,11 @@
         padding: 16px;
       }
 
-      .colophon-section {
-        padding: 24px 16px;
+      .site-footer {
+        padding: 20px 16px;
         flex-direction: column;
         align-items: flex-start;
-        gap: 16px;
+        gap: 12px;
       }
     }
   </style>
@@ -1856,35 +1849,14 @@
       </div>
     </section>
 
-    <!-- SECTION MARKER 03 -->
-    <div class="section-label-bar">
-      <span>03 // COLOPHON & VERIFICATION GUARANTEE</span>
-      <div class="status-readout">
-        <span>MAINTAINER: MIRACLE ALAJEMBA</span>
-        <span>•</span>
-        <span>LICENSE: MIT</span>
+    <!-- Clean Minimal Footer -->
+    <footer class="site-footer">
+      <div>
+        <span>Ratchet 🔒 — Built on TestMu AI Kane CLI & MCP</span>
       </div>
-    </div>
-
-    <!-- COLOPHON FOOTER -->
-    <footer class="colophon-section">
-      <div class="colophon-brand-group">
-        <div class="ratchet-logo-wrapper">
-          <svg width="24" height="24" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="0.5" y="0.5" width="27" height="27" rx="5.5" fill="#FFFFFF" stroke="#E4E4E7" />
-            <path d="M 14 5 C 9.03 5 5 9.03 5 14 C 5 18.97 9.03 23 14 23 C 18.97 23 23 18.97 23 14" stroke="#D4D4D8" stroke-width="1.2" stroke-dasharray="2 2" />
-            <path d="M 14 6.8 L 16.5 10 L 13.5 10.5 L 16.8 13.2 L 13.8 14.2 L 17.2 16.8 L 14.5 18.2 L 17.5 21 C 16.4 21.6 15.2 22 14 22 C 9.58 22 6 18.42 6 14 C 6 9.58 9.58 6.8 14 6.8 Z" fill="#09090B" />
-            <circle cx="11.5" cy="14" r="2.2" fill="#FFFFFF" stroke="#09090B" stroke-width="1.2" />
-            <path d="M 22.5 7.2 L 16.8 10 L 17.2 12.2 L 20.2 10.8 Z" fill="#2563EB" />
-            <circle cx="22.5" cy="7.2" r="1.8" fill="#2563EB" stroke="#FFFFFF" stroke-width="0.8" />
-          </svg>
-        </div>
-        <span>Ratchet 🔒 — Spec-to-Verified-Code Gate for AI Coding Agents.</span>
-      </div>
-      <div class="colophon-links">
-        <a href="https://github.com/Miracle-Alajemba/ratchet" target="_blank" rel="noopener noreferrer">Repository</a>
+      <div class="footer-links">
+        <a href="https://github.com/Miracle-Alajemba/ratchet" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
         <a href="https://github.com/Miracle-Alajemba/ratchet/blob/main/README.md" target="_blank" rel="noopener noreferrer">Documentation</a>
-        <a href="https://testmu.ai" target="_blank" rel="noopener noreferrer">TestMu AI</a>
       </div>
     </footer>
 
