@@ -352,4 +352,4 @@ If running in minimal Linux environments without standard web fonts, specify `sa
 
 ## License
 
-ISC License © 2026 Miracle Alajemba. Built with TestMu AI Kane CLI & Model Context Protocol.
+ISC License © 2026  Built with TestMu AI Kane CLI & Model Context Protocol.
