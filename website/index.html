@@ -1,0 +1,1679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ratchet 🔒 — Spec-to-Verified-Code Gate for AI Coding Agents</title>
+    <meta name="description" content="Stop AI coding agents from claiming 'Done!' until a real browser proves every requirement works. Powered by TestMu AI Kane CLI & MCP.">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- GSAP & ScrollTrigger -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+    <style>
+        :root {
+            --bg-canvas: #FFFFFF;
+            --bg-surface: #F8FAFC;
+            --bg-elevated: #FFFFFF;
+            --border-subtle: #E2E8F0;
+            --border-strong: #CBD5E1;
+            --text-primary: #0F172A;
+            --text-secondary: #475569;
+            --text-muted: #64748B;
+            --accent-blue: #2563EB;
+            --accent-blue-hover: #1D4ED8;
+            --accent-blue-subtle: #EFF6FF;
+            --state-emerald: #059669;
+            --state-emerald-bg: #ECFDF5;
+            --state-emerald-border: #A7F3D0;
+            --state-crimson: #DC2626;
+            --state-crimson-bg: #FEF2F2;
+            --state-crimson-border: #FECACA;
+            --code-bg: #0F172A;
+            --code-header: #1E293B;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-display: 'Plus Jakarta Sans', var(--font-sans);
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+            --shadow-lg: 0 12px 24px -4px rgba(15, 23, 42, 0.08), 0 4px 8px -2px rgba(15, 23, 42, 0.04);
+            --shadow-elevated: 0 20px 35px -5px rgba(15, 23, 42, 0.08), 0 10px 15px -5px rgba(15, 23, 42, 0.04);
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-canvas);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* Clean Background Grid Pattern */
+        .bg-grid {
+            background-image: 
+                linear-gradient(to right, rgba(226, 232, 240, 0.6) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(226, 232, 240, 0.6) 1px, transparent 1px);
+            background-size: 36px 36px;
+            background-position: -1px -1px;
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            mask-image: radial-gradient(ellipse at center, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 80%);
+            -webkit-mask-image: radial-gradient(ellipse at center, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 80%);
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 0 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        header {
+            position: sticky;
+            top: 0;
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-subtle);
+            z-index: 100;
+        }
+
+        .nav-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 70px;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--text-primary);
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 1.25rem;
+            letter-spacing: -0.02em;
+        }
+
+        .logo-icon {
+            width: 34px;
+            height: 34px;
+            background: linear-gradient(135deg, #1E293B, #0F172A);
+            color: #FFFFFF;
+            border-radius: var(--radius-sm);
+            display: grid;
+            place-items: center;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.15);
+        }
+
+        .brand-badge {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            background: var(--bg-surface);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-subtle);
+            padding: 3px 8px;
+            border-radius: 9999px;
+            font-weight: 500;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            list-style: none;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            font-weight: 500;
+            transition: color 0.15s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-github {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            background: #FFFFFF;
+            border: 1px solid var(--border-strong);
+            color: var(--text-primary);
+            font-size: 0.88rem;
+            font-weight: 600;
+            text-decoration: none;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.15s ease;
+        }
+
+        .btn-github:hover {
+            background: var(--bg-surface);
+            border-color: #94A3B8;
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 72px 0 56px;
+            position: relative;
+        }
+
+        .hero-pill-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--accent-blue-subtle);
+            border: 1px solid #BFDBFE;
+            color: var(--accent-blue);
+            font-size: 0.82rem;
+            font-weight: 600;
+            padding: 5px 14px;
+            border-radius: 9999px;
+            margin-bottom: 24px;
+        }
+
+        .pulse-dot {
+            width: 7px;
+            height: 7px;
+            background: var(--state-emerald);
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.2);
+            animation: pulse-ring 2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.4); }
+            70% { box-shadow: 0 0 0 7px rgba(5, 150, 105, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(5, 150, 105, 0); }
+        }
+
+        .hero-title {
+            font-family: var(--font-display);
+            font-size: clamp(2.3rem, 5vw, 3.8rem);
+            font-weight: 800;
+            line-height: 1.12;
+            letter-spacing: -0.035em;
+            color: var(--text-primary);
+            max-width: 960px;
+            margin-bottom: 22px;
+        }
+
+        .hero-title span.highlight-blue {
+            color: var(--accent-blue);
+        }
+
+        .hero-title span.strike {
+            text-decoration: line-through;
+            color: #94A3B8;
+        }
+
+        .hero-desc {
+            font-size: clamp(1.05rem, 1.8vw, 1.25rem);
+            color: var(--text-secondary);
+            max-width: 780px;
+            line-height: 1.6;
+            margin-bottom: 36px;
+        }
+
+        .hero-cta-group {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 48px;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 13px 26px;
+            background: var(--accent-blue);
+            color: #FFFFFF;
+            font-size: 0.98rem;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            text-decoration: none;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+            transition: all 0.15s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-blue-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 13px 22px;
+            background: #FFFFFF;
+            border: 1px solid var(--border-strong);
+            color: var(--text-primary);
+            font-size: 0.98rem;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            text-decoration: none;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.15s ease;
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-surface);
+            border-color: #94A3B8;
+        }
+
+        .cli-pill-install {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            padding: 8px 14px;
+            border-radius: var(--radius-sm);
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+        }
+
+        .cli-pill-install code {
+            font-family: inherit;
+        }
+
+        .copy-icon-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            transition: color 0.15s ease;
+        }
+
+        .copy-icon-btn:hover {
+            color: var(--text-primary);
+        }
+
+        /* Autonomous Agent Live Visualizer */
+        .visualizer-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            box-shadow: var(--shadow-elevated);
+            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .visualizer-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-subtle);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .status-telemetry {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            background: var(--bg-surface);
+            padding: 6px 14px;
+            border-radius: 9999px;
+            border: 1px solid var(--border-subtle);
+            font-family: var(--font-mono);
+        }
+
+        .status-telemetry-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-blue);
+        }
+
+        #agent-live-status-text {
+            color: var(--text-primary);
+            transition: opacity 0.25s ease;
+        }
+
+        .live-loop-tag {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .nodes-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        @media (max-width: 860px) {
+            .nodes-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .agent-node {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            transition: all 0.25s ease;
+            position: relative;
+        }
+
+        .agent-node.active-pulse {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12), var(--shadow-md);
+            background: #FFFFFF;
+        }
+
+        .agent-node.blocked-pulse {
+            border-color: var(--state-crimson);
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+        }
+
+        .agent-node.locked-pulse {
+            border-color: var(--state-emerald);
+            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.12);
+        }
+
+        .node-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .node-icon-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .node-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            display: grid;
+            place-items: center;
+            font-size: 1rem;
+            background: #FFFFFF;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .node-title {
+            font-family: var(--font-display);
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .node-status-badge {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-weight: 600;
+        }
+
+        .badge-idle { background: #F1F5F9; color: #64748B; border: 1px solid #E2E8F0; }
+        .badge-active { background: #EFF6FF; color: #2563EB; border: 1px solid #BFDBFE; }
+        .badge-blocked { background: var(--state-crimson-bg); color: var(--state-crimson); border: 1px solid var(--state-crimson-border); }
+        .badge-locked { background: var(--state-emerald-bg); color: var(--state-emerald); border: 1px solid var(--state-emerald-border); }
+
+        .node-snippet {
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            background: #0F172A;
+            color: #E2E8F0;
+            padding: 10px 12px;
+            border-radius: var(--radius-sm);
+            line-height: 1.45;
+            min-height: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .node-snippet .dim { color: #64748B; }
+        .node-snippet .green { color: #34D399; font-weight: 600; }
+        .node-snippet .red { color: #F87171; font-weight: 600; }
+        .node-snippet .blue { color: #60A5FA; }
+
+        /* SVG Wire Connectors */
+        .signal-paths-svg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Section Styling */
+        section {
+            padding: 84px 0;
+            position: relative;
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 720px;
+            margin: 0 auto 52px;
+        }
+
+        .section-tag {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--accent-blue);
+            margin-bottom: 12px;
+            display: inline-block;
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.85rem, 3.5vw, 2.5rem);
+            font-weight: 800;
+            line-height: 1.2;
+            letter-spacing: -0.025em;
+            margin-bottom: 16px;
+        }
+
+        .section-desc {
+            font-size: 1.08rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* The Problem vs Solution (2-Column Compare) */
+        .compare-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+        }
+
+        @media (max-width: 840px) {
+            .compare-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .compare-card {
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            position: relative;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .compare-card.bad {
+            background: #FFFFFF;
+            border: 1px solid var(--state-crimson-border);
+        }
+
+        .compare-card.good {
+            background: #FFFFFF;
+            border: 1px solid var(--state-emerald-border);
+            box-shadow: 0 4px 20px rgba(5, 150, 105, 0.08);
+        }
+
+        .compare-badge {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            display: inline-block;
+            margin-bottom: 18px;
+        }
+
+        .compare-card.bad .compare-badge {
+            background: var(--state-crimson-bg);
+            color: var(--state-crimson);
+            border: 1px solid var(--state-crimson-border);
+        }
+
+        .compare-card.good .compare-badge {
+            background: var(--state-emerald-bg);
+            color: var(--state-emerald);
+            border: 1px solid var(--state-emerald-border);
+        }
+
+        .compare-card h3 {
+            font-family: var(--font-display);
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: -0.015em;
+        }
+
+        .compare-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .compare-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 0.96rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .compare-icon {
+            flex-shrink: 0;
+            margin-top: 3px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-size: 0.72rem;
+            font-weight: bold;
+        }
+
+        .compare-card.bad .compare-icon {
+            background: var(--state-crimson-bg);
+            color: var(--state-crimson);
+            border: 1px solid var(--state-crimson-border);
+        }
+
+        .compare-card.good .compare-icon {
+            background: var(--state-emerald-bg);
+            color: var(--state-emerald);
+            border: 1px solid var(--state-emerald-border);
+        }
+
+        /* Simulator Section */
+        .sim-section {
+            background: var(--bg-surface);
+            border-top: 1px solid var(--border-subtle);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .sim-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+
+        .sim-tab-btn {
+            background: #FFFFFF;
+            border: 1px solid var(--border-strong);
+            padding: 10px 22px;
+            border-radius: var(--radius-sm);
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sim-tab-btn:hover {
+            color: var(--text-primary);
+            border-color: #94A3B8;
+        }
+
+        .sim-tab-btn.active {
+            background: var(--text-primary);
+            color: #FFFFFF;
+            border-color: var(--text-primary);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+        }
+
+        .sim-window {
+            background: #FFFFFF;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-elevated);
+            overflow: hidden;
+            max-width: 980px;
+            margin: 0 auto;
+        }
+
+        .sim-window-chrome {
+            background: #F1F5F9;
+            padding: 12px 18px;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .window-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .dot {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+        }
+
+        .dot-red { background: #EF4444; }
+        .dot-yellow { background: #F59E0B; }
+        .dot-green { background: #10B981; }
+
+        .window-title {
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .window-status-badge {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 9999px;
+        }
+
+        .sim-content-body {
+            padding: 24px;
+            min-height: 400px;
+        }
+
+        /* 4-Stage Architecture Grid */
+        .stages-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .stages-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .stages-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .stage-card {
+            background: #FFFFFF;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .stage-card:hover {
+            transform: translateY(-2px);
+            border-color: #CBD5E1;
+            box-shadow: var(--shadow-md);
+        }
+
+        .stage-num {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+            margin-bottom: 12px;
+            display: inline-block;
+        }
+
+        .stage-title {
+            font-family: var(--font-display);
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .stage-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 16px;
+            flex-grow: 1;
+        }
+
+        .stage-code-pill {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            padding: 6px 10px;
+            border-radius: var(--radius-sm);
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            color: var(--text-primary);
+        }
+
+        /* CLI & MCP Quick Reference */
+        .ref-section {
+            background: #FFFFFF;
+        }
+
+        .ref-box {
+            background: #0F172A;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-elevated);
+        }
+
+        .ref-nav-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            background: #1E293B;
+            border-bottom: 1px solid #334155;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .ref-tabs {
+            display: flex;
+            gap: 8px;
+        }
+
+        .ref-tab-btn {
+            background: transparent;
+            border: none;
+            color: #94A3B8;
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .ref-tab-btn:hover {
+            color: #FFFFFF;
+        }
+
+        .ref-tab-btn.active {
+            background: #0F172A;
+            color: #38BDF8;
+            box-shadow: inset 0 0 0 1px #334155;
+        }
+
+        .ref-copy-btn {
+            background: #334155;
+            border: 1px solid #475569;
+            color: #E2E8F0;
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            padding: 5px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+        }
+
+        .ref-copy-btn:hover {
+            background: #475569;
+            color: #FFFFFF;
+        }
+
+        .code-display-area {
+            padding: 24px;
+            font-family: var(--font-mono);
+            font-size: 0.88rem;
+            color: #E2E8F0;
+            overflow-x: auto;
+            line-height: 1.6;
+            min-height: 240px;
+        }
+
+        .code-comment { color: #64748B; }
+        .code-keyword { color: #F472B6; }
+        .code-string { color: #34D399; }
+        .code-func { color: #60A5FA; }
+        .code-prop { color: #38BDF8; }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--border-subtle);
+            padding: 48px 0;
+            background: var(--bg-surface);
+        }
+
+        .footer-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .footer-text {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+        }
+
+        .footer-links {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            list-style: none;
+        }
+
+        .footer-link {
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+            transition: color 0.15s ease;
+        }
+
+        .footer-link:hover {
+            color: var(--text-primary);
+        }
+
+        /* Micro Toast for copy */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #0F172A;
+            color: #FFFFFF;
+            padding: 10px 18px;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            font-family: var(--font-mono);
+            box-shadow: var(--shadow-lg);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header>
+        <div class="container">
+            <div class="nav-wrap">
+                <a href="#" class="brand-logo">
+                    <div class="logo-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                    </div>
+                    <span>Ratchet</span>
+                    <span class="brand-badge">v1.0 • Kane CLI & MCP</span>
+                </a>
+
+                <ul class="nav-links">
+                    <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
+                    <li><a href="#simulator" class="nav-link">Simulator</a></li>
+                    <li><a href="#architecture" class="nav-link">Architecture</a></li>
+                    <li><a href="#developer-ref" class="nav-link">CLI & MCP</a></li>
+                </ul>
+
+                <div class="nav-actions">
+                    <a href="https://github.com/Miracle-Alajemba/ratchet" target="_blank" rel="noopener noreferrer" class="btn-github">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                        </svg>
+                        <span>GitHub</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="bg-grid"></div>
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-pill-badge">
+                    <span class="pulse-dot"></span>
+                    <span>Spec-to-Verified-Code Closed Loop for AI Coding Agents</span>
+                </div>
+
+                <h1 class="hero-title">
+                    Stop AI coding agents from claiming <span class="strike">"Done!"</span> <br>
+                    until a <span class="highlight-blue">real browser</span> proves it.
+                </h1>
+
+                <p class="hero-desc">
+                    Ratchet automatically converts plain-English product specs (<code>PRD.md</code>) into binding Kane CLI acceptance scenarios. It executes real Chrome browser runs, catches miswired UI logic, and feeds surgical <strong>Repair Packets</strong> back to your agent until 100% of criteria pass.
+                </p>
+
+                <div class="hero-cta-group">
+                    <a href="#simulator" class="btn-primary">
+                        <span>Interactive Simulator</span>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </a>
+                    <a href="#architecture" class="btn-secondary">4-Step Architecture</a>
+                    <div class="cli-pill-install">
+                        <code>$ npm link ratchet</code>
+                        <button class="copy-icon-btn" onclick="copySnippet('npm link ratchet', this)" title="Copy command">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Live Autonomous Agent Pulse Visualizer -->
+                <div class="visualizer-card">
+                    <div class="visualizer-header">
+                        <div class="status-telemetry">
+                            <span class="status-telemetry-dot"></span>
+                            <span id="agent-live-status-text">Agent: Reading PRD.md acceptance criteria...</span>
+                        </div>
+                        <span class="live-loop-tag">Live Autonomous Verification Stream</span>
+                    </div>
+
+                    <div class="nodes-grid" id="nodes-container">
+                        <!-- Node 1: AI Agent -->
+                        <div class="agent-node" id="node-agent">
+                            <div class="node-top">
+                                <div class="node-icon-title">
+                                    <div class="node-icon">🤖</div>
+                                    <span class="node-title">AI Coding Agent</span>
+                                </div>
+                                <span class="node-status-badge badge-active" id="badge-agent">SYNTHESIZING</span>
+                            </div>
+                            <div class="node-snippet" id="snippet-agent">
+                                <span class="dim">// Implementing checkout form</span>
+                                <span class="blue">applyPromo(code)</span> { ... }
+                            </div>
+                        </div>
+
+                        <!-- Node 2: Kane CLI -->
+                        <div class="agent-node" id="node-browser">
+                            <div class="node-top">
+                                <div class="node-icon-title">
+                                    <div class="node-icon">🌐</div>
+                                    <span class="node-title">Kane CLI Chrome</span>
+                                </div>
+                                <span class="node-status-badge badge-idle" id="badge-browser">STANDBY</span>
+                            </div>
+                            <div class="node-snippet" id="snippet-browser">
+                                <span class="dim">// Port :4173</span>
+                                <span>Awaiting headless run...</span>
+                            </div>
+                        </div>
+
+                        <!-- Node 3: Ratchet Gate -->
+                        <div class="agent-node" id="node-gate">
+                            <div class="node-top">
+                                <div class="node-icon-title">
+                                    <div class="node-icon">🔒</div>
+                                    <span class="node-title">Ratchet Lock Gate</span>
+                                </div>
+                                <span class="node-status-badge badge-idle" id="badge-gate">ARMED</span>
+                            </div>
+                            <div class="node-snippet" id="snippet-gate">
+                                <span class="dim">// Pre-Push Enforcement</span>
+                                <span>Git pushes locked</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- The Problem vs The Solution -->
+    <section id="how-it-works">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Why Ratchet Exists</span>
+                <h2 class="section-title">The "Looks Good To Me" Trap in AI Code Generation</h2>
+                <p class="section-desc">
+                    When agents run unsupervised, they optimize for compilation and test evasion. Ratchet enforces a mechanical gate that cannot slip backward.
+                </p>
+            </div>
+
+            <div class="compare-grid">
+                <!-- Bad: Without Ratchet -->
+                <div class="compare-card bad">
+                    <span class="compare-badge">Without Ratchet (Unverified)</span>
+                    <h3>The AI Agent Declares Victory Early</h3>
+                    <ul class="compare-list">
+                        <li class="compare-item">
+                            <span class="compare-icon">✕</span>
+                            <span><strong>Compilation ≠ Working UI:</strong> Code compiles with zero TypeScript errors, but the promo discount handler doesn't calculate the total.</span>
+                        </li>
+                        <li class="compare-item">
+                            <span class="compare-icon">✕</span>
+                            <span><strong>Trivial Test Shortcuts:</strong> The agent writes a 2-line test that checks if the HTML title loaded and marks the entire task as "PROVEN".</span>
+                        </li>
+                        <li class="compare-item">
+                            <span class="compare-icon">✕</span>
+                            <span><strong>Context Bloat & Log Dumping:</strong> Raw browser logs, HTML dumps, and traces overwhelm the agent's context window with thousands of tokens.</span>
+                        </li>
+                        <li class="compare-item">
+                            <span class="compare-icon">✕</span>
+                            <span><strong>Broken Code Pushed to Git:</strong> No barrier stops the agent from committing and pushing broken user experiences directly to <code>main</code>.</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Good: With Ratchet -->
+                <div class="compare-card good">
+                    <span class="compare-badge">With Ratchet (Verified Closed Loop)</span>
+                    <h3>Autonomous Mechanical Lock Gate</h3>
+                    <ul class="compare-list">
+                        <li class="compare-item">
+                            <span class="compare-icon">✓</span>
+                            <span><strong>Binding Kane Acceptance Scenarios:</strong> <code>ratchet sync</code> maps 100% of plain-English PRD bullet points to executable browser tests.</span>
+                        </li>
+                        <li class="compare-item">
+                            <span class="compare-item">✓</span>
+                            <span><strong>Real Chrome Automation:</strong> Kane CLI types promo codes, clicks buttons, and verifies DOM state in real Google Chrome.</span>
+                        </li>
+                        <li class="compare-item">
+                            <span class="compare-icon">✓</span>
+                            <span><strong>Surgical Repair Packets:</strong> Failures emit token-efficient JSON with exact <code>memoryDiffs</code> (Expected: $80, Got: $100) so agents fix bugs immediately.</span>
+                        </li>
+                        <li class="compare-item">
+                            <span class="compare-icon">✓</span>
+                            <span><strong>Pre-Push Lock:</strong> <code>.git/hooks/pre-push</code> physically blocks <code>git push</code> until every single acceptance criterion passes.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Red-to-Green Simulator -->
+    <section class="sim-section" id="simulator">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Interactive Simulator</span>
+                <h2 class="section-title">Experience the Red-to-Green Self-Healing Loop</h2>
+                <p class="section-desc">
+                    Toggle through the 3 phases of Ratchet's state machine. Watch how a failing promo code is trapped, diagnosed, and repaired.
+                </p>
+            </div>
+
+            <!-- Simulator Tab Switcher -->
+            <div class="sim-controls">
+                <button class="sim-tab-btn active" id="tab-step-1" onclick="switchSimStep(1)">
+                    <span>1. ratchet sync</span>
+                </button>
+                <button class="sim-tab-btn" id="tab-step-2" onclick="switchSimStep(2)">
+                    <span style="color: #DC2626;">●</span>
+                    <span>2. RATCHET BLOCKED</span>
+                </button>
+                <button class="sim-tab-btn" id="tab-step-3" onclick="switchSimStep(3)">
+                    <span style="color: #059669;">●</span>
+                    <span>3. RATCHET LOCKED</span>
+                </button>
+            </div>
+
+            <!-- Simulator Display Window -->
+            <div class="sim-window">
+                <div class="sim-window-chrome">
+                    <div class="window-dots">
+                        <span class="dot dot-red"></span>
+                        <span class="dot dot-yellow"></span>
+                        <span class="dot dot-green"></span>
+                    </div>
+                    <div class="window-title" id="sim-window-file">demo-app/PRD.md & Coverage Gate</div>
+                    <div class="window-status-badge" id="sim-status-pill" style="background:#EFF6FF; color:#2563EB;">INGESTION</div>
+                </div>
+
+                <div class="sim-content-body" id="sim-body">
+                    <!-- Content injected dynamically via JS -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4-Stage Architecture Grid -->
+    <section id="architecture">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Architecture</span>
+                <h2 class="section-title">The 4 Mechanical Clicks of Ratchet</h2>
+                <p class="section-desc">
+                    A deterministic pipeline designed for autonomous coding agents and human developer workflows alike.
+                </p>
+            </div>
+
+            <div class="stages-grid">
+                <!-- Card 1 -->
+                <div class="stage-card">
+                    <span class="stage-num">01 / SPEC</span>
+                    <h3 class="stage-title">PRD.md</h3>
+                    <p class="stage-desc">
+                        Write user-observable requirements in plain English. Specify base prices, promo codes, and expected banner strings.
+                    </p>
+                    <div class="stage-code-pill">
+                        <code>demo-app/PRD.md</code>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="stage-card">
+                    <span class="stage-num">02 / COMPILE</span>
+                    <h3 class="stage-title">ratchet sync</h3>
+                    <p class="stage-desc">
+                        Kane CLI ingests requirements and designs binding acceptance scenarios (<code>_test.md</code>) mapped 1:1 to criteria.
+                    </p>
+                    <div class="stage-code-pill">
+                        <code>ratchet sync --prd PRD.md</code>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="stage-card">
+                    <span class="stage-num">03 / EXECUTE</span>
+                    <h3 class="stage-title">ratchet verify</h3>
+                    <p class="stage-desc">
+                        Kane CLI drives Google Chrome, collects step assertions, and returns a surgical <code>RepairPacket</code> on failure.
+                    </p>
+                    <div class="stage-code-pill">
+                        <code>ratchet verify --json</code>
+                    </div>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="stage-card">
+                    <span class="stage-num">04 / ENFORCE</span>
+                    <h3 class="stage-title">ratchet hook</h3>
+                    <p class="stage-desc">
+                        Installs a Git pre-push hook. Blocks pushes whenever verification fails; unlocks only when all criteria pass.
+                    </p>
+                    <div class="stage-code-pill">
+                        <code>.git/hooks/pre-push</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Developer Reference: CLI & MCP Quick Reference -->
+    <section class="ref-section" id="developer-ref">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Integration & Tooling</span>
+                <h2 class="section-title">CLI Commands & Model Context Protocol (MCP)</h2>
+                <p class="section-desc">
+                    Run Ratchet directly from your terminal or plug it into Claude Code, Cursor, Codex, or Antigravity via MCP.
+                </p>
+            </div>
+
+            <div class="ref-box">
+                <div class="ref-nav-bar">
+                    <div class="ref-tabs">
+                        <button class="ref-tab-btn active" id="btn-cli-tab" onclick="switchRefTab('cli')">CLI Commands</button>
+                        <button class="ref-tab-btn" id="btn-mcp-tab" onclick="switchRefTab('mcp')">mcp_config.json</button>
+                        <button class="ref-tab-btn" id="btn-packet-tab" onclick="switchRefTab('packet')">RepairPacket Type</button>
+                    </div>
+
+                    <button class="ref-copy-btn" onclick="copyRefSnippet()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        <span id="copy-ref-label">Copy snippet</span>
+                    </button>
+                </div>
+
+                <pre class="code-display-area" id="ref-code-area"></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-wrap">
+                <div class="footer-text">
+                    <strong>Ratchet 🔒</strong> — Built for the TestMu AI Kane CLI Hackathon. ISC Licensed.
+                </div>
+                <ul class="footer-links">
+                    <li><a href="https://github.com/Miracle-Alajemba/ratchet" target="_blank" class="footer-link">GitHub Repository</a></li>
+                    <li><a href="https://www.testmuai.com/support/docs/kane-cli-introduction" target="_blank" class="footer-link">Kane CLI Documentation</a></li>
+                    <li><a href="https://modelcontextprotocol.io" target="_blank" class="footer-link">MCP Protocol</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <span id="toast-msg">Copied to clipboard!</span>
+    </div>
+
+    <!-- Interactive Script -->
+    <script>
+        // 1. Live Autonomous Agent Pulse Simulation Loop
+        const liveStatuses = [
+            {
+                text: "Agent: Reading PRD.md acceptance criteria...",
+                activeNode: "node-agent",
+                agentSnippet: `<span class="dim">// Reading requirements</span>\n<span class="blue">PRD.md:</span> Base $100, SAVE20 -> $80`,
+                browserSnippet: `<span class="dim">// Port :4173</span>\n<span>Awaiting run trigger...</span>`,
+                gateSnippet: `<span class="dim">// Gate Status</span>\n<span class="dim">ARMED</span>`,
+                badgeAgent: { text: "READING SPEC", class: "badge-active" },
+                badgeBrowser: { text: "STANDBY", class: "badge-idle" },
+                badgeGate: { text: "ARMED", class: "badge-idle" }
+            },
+            {
+                text: "Kane CLI: Launching Chrome & testing http://localhost:4173...",
+                activeNode: "node-browser",
+                agentSnippet: `<span class="dim">// Implementation ready</span>\n<span class="blue">index.html</span> served on 4173`,
+                browserSnippet: `<span class="dim">// Headless Chrome</span>\n<span>Typing "SAVE20" into promo input...</span>`,
+                gateSnippet: `<span class="dim">// Gate Status</span>\n<span class="blue">EVALUATING DOM</span>`,
+                badgeAgent: { text: "IDLE", class: "badge-idle" },
+                badgeBrowser: { text: "TESTING CHROME", class: "badge-active" },
+                badgeGate: { text: "EVALUATING", class: "badge-active" }
+            },
+            {
+                text: "Ratchet Gate: Verification BLOCKED ($100 ≠ $80 mismatch)",
+                activeNode: "node-gate",
+                agentSnippet: `<span class="dim">// Waiting for verdict</span>\n<span>Parsing RepairPacket...</span>`,
+                browserSnippet: `<span class="red">Assertion failed</span>\n<span>Wanted $80, found $100</span>`,
+                gateSnippet: `<span class="red">RATCHET BLOCKED (exit 1)</span>\n<span>Push locked by gate</span>`,
+                badgeAgent: { text: "BLOCKED", class: "badge-idle" },
+                badgeBrowser: { text: "FAILED", class: "badge-blocked" },
+                badgeGate: { text: "BLOCKED", class: "badge-blocked" }
+            },
+            {
+                text: "Agent: Ingesting RepairPacket & patching index.html...",
+                activeNode: "node-agent",
+                agentSnippet: `<span class="dim">// Self-healing bug</span>\n<span class="green">currentTotal = 80;</span> <span class="dim">// patched!</span>`,
+                browserSnippet: `<span class="dim">// Headless Chrome</span>\n<span>Restarting verification pass...</span>`,
+                gateSnippet: `<span class="dim">// Gate Status</span>\n<span>Awaiting re-verify</span>`,
+                badgeAgent: { text: "PATCHING CODE", class: "badge-active" },
+                badgeBrowser: { text: "STANDBY", class: "badge-idle" },
+                badgeGate: { text: "PENDING", class: "badge-idle" }
+            },
+            {
+                text: "Ratchet Gate: Verification PROVEN — LOCKED (✔)",
+                activeNode: "node-gate",
+                agentSnippet: `<span class="green">✔ All criteria proven</span>\n<span class="dim">Ready for production push</span>`,
+                browserSnippet: `<span class="green">3/3 steps passed</span>\n<span>Order Confirmed: $80 paid</span>`,
+                gateSnippet: `<span class="green">RATCHET LOCKED (exit 0)</span>\n<span class="green">✔ Push authorized</span>`,
+                badgeAgent: { text: "PROVEN", class: "badge-locked" },
+                badgeBrowser: { text: "PASSED", class: "badge-locked" },
+                badgeGate: { text: "LOCKED ✔", class: "badge-locked" }
+            }
+        ];
+
+        let currentLoopIdx = 0;
+        function updateLiveVisualizer() {
+            const data = liveStatuses[currentLoopIdx];
+            const statusTextEl = document.getElementById("agent-live-status-text");
+
+            // Fade transition text
+            gsap.to(statusTextEl, {
+                opacity: 0,
+                duration: 0.2,
+                onComplete: () => {
+                    statusTextEl.textContent = data.text;
+                    gsap.to(statusTextEl, { opacity: 1, duration: 0.25 });
+                }
+            });
+
+            // Update Node Snippets
+            document.getElementById("snippet-agent").innerHTML = data.agentSnippet;
+            document.getElementById("snippet-browser").innerHTML = data.browserSnippet;
+            document.getElementById("snippet-gate").innerHTML = data.gateSnippet;
+
+            // Badges
+            const bA = document.getElementById("badge-agent");
+            bA.textContent = data.badgeAgent.text;
+            bA.className = "node-status-badge " + data.badgeAgent.class;
+
+            const bB = document.getElementById("badge-browser");
+            bB.textContent = data.badgeBrowser.text;
+            bB.className = "node-status-badge " + data.badgeBrowser.class;
+
+            const bG = document.getElementById("badge-gate");
+            bG.textContent = data.badgeGate.text;
+            bG.className = "node-status-badge " + data.badgeGate.class;
+
+            // Node Highlights
+            ["node-agent", "node-browser", "node-gate"].forEach(id => {
+                const el = document.getElementById(id);
+                el.classList.remove("active-pulse", "blocked-pulse", "locked-pulse");
+            });
+
+            const activeNodeEl = document.getElementById(data.activeNode);
+            if (currentLoopIdx === 2) {
+                activeNodeEl.classList.add("blocked-pulse");
+            } else if (currentLoopIdx === 4) {
+                activeNodeEl.classList.add("locked-pulse");
+            } else {
+                activeNodeEl.classList.add("active-pulse");
+            }
+
+            currentLoopIdx = (currentLoopIdx + 1) % liveStatuses.length;
+        }
+
+        setInterval(updateLiveVisualizer, 3200);
+
+        // 2. Simulator Data & Step Switcher
+        const simStepData = {
+            1: {
+                fileName: "demo-app/PRD.md & ratchet sync",
+                statusPill: { text: "1. SPEC INGESTED", bg: "#EFF6FF", color: "#2563EB" },
+                html: `
+                    <div style="font-family: var(--font-mono); font-size: 0.88rem;">
+                        <div style="color: #64748B; margin-bottom: 8px;">// Terminal: ratchet sync --prd PRD.md</div>
+                        <div style="color: #2563EB; font-weight: 600; margin-bottom: 16px;">⚙ Syncing spec from PRD.md...</div>
+                        <div style="color: #059669; font-weight: 600; margin-bottom: 16px;">✔ Context ingested & acceptance tests designed.</div>
+                        <div style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 14px; border-radius: 8px; margin-bottom: 16px;">
+                            <div style="font-weight: 700; color: #0F172A; margin-bottom: 6px;">Mapped Acceptance Criteria (Coverage: 3 / 3 = 100%)</div>
+                            <div style="color: #334155;">1. [AC-1] Base price displays <span style="background: #E2E8F0; padding: 1px 5px; border-radius: 3px;">$100</span></div>
+                            <div style="color: #334155;">2. [AC-2] Entering promo code <span style="background: #E2E8F0; padding: 1px 5px; border-radius: 3px;">SAVE20</span> updates total to <span style="background: #E2E8F0; padding: 1px 5px; border-radius: 3px;">$80</span> and shows <span style="background: #E2E8F0; padding: 1px 5px; border-radius: 3px;">"Discount applied"</span></div>
+                            <div style="color: #334155;">3. [AC-3] Clicking "Complete Order" displays <span style="background: #E2E8F0; padding: 1px 5px; border-radius: 3px;">"Order Confirmed: $80 paid"</span></div>
+                        </div>
+                        <div style="color: #64748B;">Generated: <span style="color: #0F172A; font-weight: 600;">demo-app/.testmuai/tests/checkout_test.md</span></div>
+                    </div>
+                `
+            },
+            2: {
+                fileName: "demo-app/ RepairPacket (Validation Failed)",
+                statusPill: { text: "2. RATCHET BLOCKED (exit 1)", bg: "#FEF2F2", color: "#DC2626" },
+                html: `
+                    <div style="font-family: var(--font-mono); font-size: 0.85rem; color: #0F172A;">
+                        <div style="color: #DC2626; font-weight: 700; margin-bottom: 10px;">✖ RATCHET BLOCKED — VERIFICATION FAILED (exit code 1)</div>
+                        <pre style="background: #0F172A; color: #F8FAFC; padding: 16px; border-radius: 8px; overflow-x: auto; line-height: 1.5;">{
+  <span style="color: #38BDF8;">"status"</span>: <span style="color: #F87171;">"BLOCKED"</span>,
+  <span style="color: #38BDF8;">"locked"</span>: <span style="color: #F87171;">false</span>,
+  <span style="color: #38BDF8;">"summary"</span>: <span style="color: #FDE047;">"Ratchet verification gate blocked: promo code not applied"</span>,
+  <span style="color: #38BDF8;">"evidence"</span>: {
+    <span style="color: #38BDF8;">"executionId"</span>: <span style="color: #CBD5E1;">"cce2a7d0-b1e2-4f45-9e2a-74cf83cc3a26"</span>,
+    <span style="color: #38BDF8;">"replayCommand"</span>: <span style="color: #60A5FA;">"kane-cli evidence serve demo-app/.testmuai/evidence/cce2a7d0.evidence"</span>
+  },
+  <span style="color: #38BDF8;">"failureAnalysis"</span>: {
+    <span style="color: #38BDF8;">"rootCause"</span>: <span style="color: #F87171;">"Promo code SAVE20 did not apply 20% discount; total remains $100 instead of $80"</span>,
+    <span style="color: #38BDF8;">"failedStep"</span>: <span style="color: #F59E0B;">2</span>,
+    <span style="color: #38BDF8;">"memoryDiffs"</span>: [
+      {
+        <span style="color: #38BDF8;">"check"</span>: <span style="color: #CBD5E1;">"Total price after promo SAVE20"</span>,
+        <span style="color: #38BDF8;">"expected"</span>: <span style="color: #34D399;">"$80"</span>,
+        <span style="color: #38BDF8;">"actual"</span>: <span style="color: #F87171;">"$100"</span>
+      }
+    ]
+  }
+}</pre>
+                    </div>
+                `
+            },
+            3: {
+                fileName: "demo-app/ RepairPacket (Lock Acquired)",
+                statusPill: { text: "3. RATCHET LOCKED (exit 0)", bg: "#ECFDF5", color: "#059669" },
+                html: `
+                    <div style="font-family: var(--font-mono); font-size: 0.85rem; color: #0F172A;">
+                        <div style="color: #059669; font-weight: 700; margin-bottom: 10px;">✔ RATCHET LOCKED — ALL ACCEPTANCE CRITERIA PROVEN (exit code 0)</div>
+                        <pre style="background: #0F172A; color: #F8FAFC; padding: 16px; border-radius: 8px; overflow-x: auto; line-height: 1.5;">{
+  <span style="color: #38BDF8;">"status"</span>: <span style="color: #34D399;">"PROVEN"</span>,
+  <span style="color: #38BDF8;">"locked"</span>: <span style="color: #34D399;">true</span>,
+  <span style="color: #38BDF8;">"summary"</span>: <span style="color: #34D399;">"All acceptance criteria verified and proven by Kane CLI."</span>,
+  <span style="color: #38BDF8;">"evidence"</span>: {
+    <span style="color: #38BDF8;">"executionId"</span>: <span style="color: #CBD5E1;">"1f053511-38d8-40f7-865f-44957fb033a4"</span>,
+    <span style="color: #38BDF8;">"evidencePack"</span>: <span style="color: #CBD5E1;">"demo-app/.testmuai/evidence/1f053511-38d8-40f7-865f-44957fb033a4.evidence"</span>,
+    <span style="color: #38BDF8;">"replayCommand"</span>: <span style="color: #60A5FA;">"kane-cli evidence serve demo-app/.testmuai/evidence/1f053511-38d8-40f7-865f-44957fb033a4.evidence"</span>
+  },
+  <span style="color: #38BDF8;">"coverage"</span>: {
+    <span style="color: #38BDF8;">"output"</span>: <span style="color: #34D399;">"Coverage: 3 / 3 acceptance criteria mapped to Kane CLI scenarios (100%)."</span>
+  },
+  <span style="color: #38BDF8;">"timestamp"</span>: <span style="color: #94A3B8;">"2026-11-22T16:21:04.082Z"</span>
+}</pre>
+                    </div>
+                `
+            }
+        };
+
+        function switchSimStep(step) {
+            [1, 2, 3].forEach(s => {
+                document.getElementById(`tab-step-${s}`).classList.remove("active");
+            });
+            document.getElementById(`tab-step-${step}`).classList.add("active");
+
+            const data = simStepData[step];
+            document.getElementById("sim-window-file").textContent = data.fileName;
+
+            const pill = document.getElementById("sim-status-pill");
+            pill.textContent = data.statusPill.text;
+            pill.style.background = data.statusPill.bg;
+            pill.style.color = data.statusPill.color;
+
+            const body = document.getElementById("sim-body");
+            gsap.fromTo(body, { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.25 });
+            body.innerHTML = data.html;
+        }
+
+        // Initialize simulator on Step 1
+        switchSimStep(1);
+
+        // 3. CLI & MCP Tab Reference Code
+        const refSnippets = {
+            cli: `// 1. Initialize Ratchet in any project
+$ ratchet init
+
+// 2. Ingest PRD.md & compile Kane CLI acceptance scenarios
+$ ratchet sync --prd PRD.md
+
+// 3. Verify in Chrome & enforce lock (returns JSON RepairPacket)
+$ ratchet verify --no-report --json
+
+// 4. Install Git pre-push hook gate
+$ ratchet hook`,
+
+            mcp: `{
+  "mcpServers": {
+    "ratchet": {
+      "command": "node",
+      "args": ["/path/to/ratchet/bin/ratchet.js", "mcp"]
+    }
+  }
+}
+
+// Available Tools:
+// • ratchet_sync: Ingest PRD & design scenarios
+// • ratchet_verify: Run Kane verification gate & return RepairPacket
+// • ratchet_coverage: Check owed criteria coverage`,
+
+            packet: `export interface RepairPacket {
+  status: "PROVEN" | "BLOCKED";
+  locked: boolean;
+  summary: string;
+  evidence: {
+    executionId?: string;
+    evidencePack?: string;
+    replayCommand?: string;
+  };
+  failureAnalysis?: {
+    rootCause: string;
+    failedStep?: string | number;
+    memoryDiffs: Array<{
+      check: string;
+      expected: any;
+      actual: any;
+    }>;
+  };
+  coverage: {
+    output: string;
+  };
+  timestamp: string;
+}`
+        };
+
+        let currentRefTab = "cli";
+        function switchRefTab(tab) {
+            currentRefTab = tab;
+            ["cli", "mcp", "packet"].forEach(t => {
+                const b = document.getElementById(`btn-${t}-tab`);
+                if (b) b.classList.remove("active");
+            });
+            document.getElementById(`btn-${tab}-tab`).classList.add("active");
+
+            const codeArea = document.getElementById("ref-code-area");
+            codeArea.textContent = refSnippets[tab];
+        }
+
+        switchRefTab("cli");
+
+        function copyRefSnippet() {
+            copySnippet(refSnippets[currentRefTab]);
+            const label = document.getElementById("copy-ref-label");
+            label.textContent = "Copied!";
+            setTimeout(() => { label.textContent = "Copy snippet"; }, 2000);
+        }
+
+        function copySnippet(text, btnElement) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast("Copied to clipboard!");
+            });
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById("toast");
+            document.getElementById("toast-msg").textContent = msg;
+            toast.classList.add("show");
+            setTimeout(() => {
+                toast.classList.remove("show");
+            }, 2400);
+        }
+
+        // 4. GSAP ScrollTrigger Animations
+        window.addEventListener("DOMContentLoaded", () => {
+            gsap.registerPlugin(ScrollTrigger);
+
+            // Stagger hero elements
+            gsap.from(".hero-pill-badge, .hero-title, .hero-desc, .hero-cta-group", {
+                opacity: 0,
+                y: 20,
+                duration: 0.8,
+                stagger: 0.15,
+                ease: "power2.out"
+            });
+
+            gsap.from(".visualizer-card", {
+                opacity: 0,
+                y: 35,
+                duration: 0.9,
+                delay: 0.4,
+                ease: "power2.out"
+            });
+
+            // Compare cards reveal
+            gsap.from(".compare-card", {
+                scrollTrigger: {
+                    trigger: "#how-it-works",
+                    start: "top 80%"
+                },
+                opacity: 0,
+                y: 30,
+                stagger: 0.2,
+                duration: 0.7,
+                ease: "power2.out"
+            });
+
+            // Architecture cards reveal
+            gsap.from(".stage-card", {
+                scrollTrigger: {
+                    trigger: "#architecture",
+                    start: "top 80%"
+                },
+                opacity: 0,
+                y: 25,
+                stagger: 0.12,
+                duration: 0.65,
+                ease: "power2.out"
+            });
+        });
+    </script>
+</body>
+</html>
