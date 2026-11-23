@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Pro Plan Checkout</title>
@@ -10,16 +11,39 @@
             max-width: 480px;
             padding: 20px;
         }
-        .row { margin: 15px 0; }
-        input { padding: 8px; font-size: 16px; width: 200px; }
-        button { padding: 8px 16px; font-size: 16px; cursor: pointer; }
-        #complete-btn { margin-top: 15px; padding: 10px 20px; font-weight: bold; }
-        .msg { margin-top: 5px; font-weight: bold; }
+
+        .row {
+            margin: 15px 0;
+        }
+
+        input {
+            padding: 8px;
+            font-size: 16px;
+            width: 200px;
+        }
+
+        button {
+            padding: 8px 16px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        #complete-btn {
+            margin-top: 15px;
+            padding: 10px 20px;
+            font-weight: bold;
+        }
+
+        .msg {
+            margin-top: 5px;
+            font-weight: bold;
+        }
     </style>
 </head>
+
 <body>
     <h1>Pro Plan Checkout</h1>
-    
+
     <div class="row">
         <div>Base price: <span id="base-price">$100</span></div>
     </div>
@@ -46,12 +70,15 @@
         function applyPromo() {
             const code = document.getElementById("promo-input").value.trim();
             if (code === "SAVE20") {
-                currentTotal = 80; 
+                currentTotal = 80;
                 discountApplied = true;
                 document.getElementById("discount-msg").textContent = "Discount applied";
                 document.getElementById("total-price").textContent = "$80";
             } else {
+                currentTotal = 100;
+                discountApplied = false;
                 document.getElementById("discount-msg").textContent = "Invalid code";
+                document.getElementById("total-price").textContent = "$100";
             }
         }
 
@@ -60,4 +87,5 @@
         }
     </script>
 </body>
+
 </html>

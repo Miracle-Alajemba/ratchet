@@ -2,7 +2,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
-import { syncSpecWithKane, getCoverageStatus } from "../engine/spec.js";
+import { syncSpecWithKane, getCoverageStatus, detectStaleOrAltered } from "../engine/spec.js";
 import { executeKaneCommand } from "../engine/runner.js";
 import { buildRepairPacket } from "../engine/packet.js";
 
@@ -36,7 +36,7 @@ server.tool(
                 content: [
                     {
                         type: "text",
-                        text: `Failed to sync spec: ${err instanceof Error ? err.message : String(err)}`,
+                        text: `Failed to sync spec via Kane CLI: ${err instanceof Error ? err.message : String(err)}`,
                     },
                 ],
             };
@@ -48,6 +48,7 @@ server.tool(
     "ratchet_verify",
     "Execute Kane CLI acceptance tests against the running app and return a surgical Repair Packet or PROVEN lock.",
     {
+        prdPath: z.string().default("PRD.md").describe("Path to the PRD markdown file"),
         target: z
             .string()
             .optional()
@@ -58,8 +59,41 @@ server.tool(
             .default(true)
             .describe("Wrap execution with kanehack report to log hackathon proof"),
     },
-    async ({ target, cwd, reportProof }) => {
+    async ({ prdPath, target, cwd, reportProof }) => {
         const workdir = cwd || process.cwd();
+
+        // 1. Detect stale or altered generated tests before verification
+        const integrity = detectStaleOrAltered(workdir, prdPath);
+        if (!integrity.ok) {
+            const blockedPacket = {
+                status: "BLOCKED" as const,
+                locked: false,
+                summary: `Ratchet verification gate blocked: ${integrity.reason}`,
+                evidence: {
+                    executionId: "unavailable",
+                    evidencePack: "unavailable",
+                    replayCommand: "unavailable",
+                },
+                failureAnalysis: {
+                    rootCause: integrity.reason || "Integrity verification failure",
+                    memoryDiffs: [],
+                    diagnostics: [integrity.reason || "Stale or altered tests detected"],
+                },
+                coverage: {
+                    output: "Integrity check failed before test execution",
+                },
+                timestamp: new Date().toISOString(),
+            };
+
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: JSON.stringify(blockedPacket, null, 2),
+                    },
+                ],
+            };
+        }
 
         const kaneArgs = target
             ? target.endsWith(".md")
@@ -69,7 +103,7 @@ server.tool(
 
         const exec = await executeKaneCommand(kaneArgs, workdir, reportProof);
         const coverage = getCoverageStatus(workdir);
-        const packet = buildRepairPacket(exec, coverage.output);
+        const packet = buildRepairPacket(exec, coverage.output, coverage);
 
         return {
             content: [

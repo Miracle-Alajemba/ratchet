@@ -1,0 +1,53 @@
+{
+  "manifestVersion": 1,
+  "syncedAt": "2026-11-22T18:12:57.096Z",
+  "prdPath": "PRD.md",
+  "prdHash": "sha256:8faf40f472eb5fcc7d5ce4693315dbf7f93bb1d39ef2450ea01ffc4945c1fc4f",
+  "testFiles": {
+    ".testmuai/tests/apply-save20-and-check-the-pro-plan-checkout-total_test.md": "sha256:4ff095b496a14d7a3f8c974e85865354af9237a739e67de0bb13cbf67482a3e8",
+    ".testmuai/tests/checkout_test.md": "sha256:d3037f63071ed44b6d00b4e3e33ca5b4e536e12afc16460e74ed378036e6fe90",
+    ".testmuai/tests/complete-the-discounted-pro-plan-purchase_test.md": "sha256:4eb4aef2c1f1f442ba9a6b137de5c16075220b28bc6d140920163fcc0613bd5e"
+  },
+  "criteria": [
+    {
+      "id": "ac-3",
+      "text": "Applying SAVE20 at the Pro Plan checkout shows “Discount applied”.",
+      "usecaseId": "uc-1",
+      "testId": "t-2",
+      "testFile": ".testmuai/tests/complete-the-discounted-pro-plan-purchase_test.md",
+      "status": "MAPPED",
+      "unreviewed": true,
+      "proven": false
+    },
+    {
+      "id": "ac-2",
+      "text": "Applying SAVE20 at the Pro Plan checkout updates the total to $80.",
+      "usecaseId": "uc-1",
+      "testId": "t-2",
+      "testFile": ".testmuai/tests/complete-the-discounted-pro-plan-purchase_test.md",
+      "status": "MAPPED",
+      "unreviewed": true,
+      "proven": false
+    },
+    {
+      "id": "ac-4",
+      "text": "Completing the order after applying SAVE20 displays “Order Confirmed: $80 paid”.",
+      "usecaseId": "uc-1",
+      "testId": "t-2",
+      "testFile": ".testmuai/tests/complete-the-discounted-pro-plan-purchase_test.md",
+      "status": "MAPPED",
+      "unreviewed": true,
+      "proven": false
+    },
+    {
+      "id": "ac-1",
+      "text": "The Pro Plan checkout displays a $100 base price.",
+      "usecaseId": "uc-1",
+      "testId": "t-2",
+      "testFile": ".testmuai/tests/complete-the-discounted-pro-plan-purchase_test.md",
+      "status": "MAPPED",
+      "unreviewed": true,
+      "proven": false
+    }
+  ]
+}
