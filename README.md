@@ -323,15 +323,6 @@ Running `node bin/ratchet.js hook` installs `.git/hooks/pre-push`:
 
 ---
 
-## 🔗 Project Links & Submission Media
-
-* 📦 **GitHub Repository:** [https://github.com/Miracle-Alajemba/ratchet](https://github.com/Miracle-Alajemba/ratchet)
-* 🎥 **Video Demo (YouTube):** [https://youtu.be/PLACEHOLDER_DEMO_VIDEO](https://youtu.be/PLACEHOLDER_DEMO_VIDEO) *(3-minute walkthrough showing closed-loop browser verification)*
-* 🚀 **Announcement on X (Twitter):** [https://x.com/PLACEHOLDER_TWEET](https://x.com/PLACEHOLDER_TWEET)
-* 💼 **LinkedIn Post:** [https://www.linkedin.com/feed/update/PLACEHOLDER_LINKEDIN](https://www.linkedin.com/feed/update/PLACEHOLDER_LINKEDIN)
-
----
-
 ## 📄 License
 
-ISC License © 2026 Miracle Alajemba. Built with TestMu AI Kane CLI & Model Context Protocol.
+ISC License © 2026. Built with TestMu AI Kane CLI & Model Context Protocol.
