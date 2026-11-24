@@ -133,7 +133,7 @@ ratchet/
 │   ├── .testmuai/                   # Kane CLI assurance & evidence store
 │   │   ├── evidence/                # Sealed .evidence execution packs
 │   │   ├── tests/
-│   │   │   └── checkout_test.md     # Generated Kane acceptance test
+│   │   │   └── complete-the-discounted-pro-plan-purchase_test.md # Generated Kane acceptance test
 │   │   └── .ratchet_manifest.json   # SHA-256 integrity manifest
 │   ├── index.html                   # Pro Plan checkout UI implementation
 │   └── PRD.md                       # Plain-English acceptance criteria
@@ -146,7 +146,7 @@ ratchet/
 │   ├── mcp/
 │   │   └── server.ts                # MCP server for agent IDEs
 │   └── index.ts                     # Commander CLI implementation
-├── test/                            # Node 24 native test suite (18 unit/integration tests)
+├── test/                            # Node native test suite (28 unit/integration tests & fixtures)
 ├── package.json
 └── tsconfig.json
 ```
@@ -233,16 +233,16 @@ When `demo-app/index.html` contains a bug where `SAVE20` fails to discount:
 ```bash
 ratchet verify --target .testmuai/tests/complete-the-discounted-pro-plan-purchase_test.md --no-report --json
 ```
-Captured Output:
+Sanitized Output:
 ```json
 {
   "status": "BLOCKED",
   "locked": false,
   "summary": "Ratchet verification gate blocked (Confirmed Product Defect): The checkout treats SAVE20 as invalid even though this checkout flow requires it to reduce the price from $100 to $80.",
   "evidence": {
-    "executionId": "f61ce14d-fbda-4290-80c0-1d38c458a13b",
-    "evidencePack": "/home/user/.testmuai/kaneai/sessions/f61ce14d-fbda-4290-80c0-1d38c458a13b/evidence/a131c194-9345-49f9-8b82-a6a90fb5193b.evidence",
-    "replayCommand": "kane-cli evidence serve /home/user/.testmuai/kaneai/sessions/f61ce14d-fbda-4290-80c0-1d38c458a13b/evidence/a131c194-9345-49f9-8b82-a6a90fb5193b.evidence"
+    "executionId": "<session-id>",
+    "evidencePack": ".testmuai/kaneai/sessions/<session-id>/evidence/<evidence-id>.evidence",
+    "replayCommand": "kane-cli evidence serve .testmuai/kaneai/sessions/<session-id>/evidence/<evidence-id>.evidence"
   },
   "failureAnalysis": {
     "defectType": "product_defect",
@@ -262,7 +262,7 @@ Captured Output:
     "coveredCriteria": 4,
     "provenCriteria": 1
   },
-  "timestamp": "2026-11-23T02:26:44.225Z"
+  "timestamp": "2026-11-24T00:00:00.000Z"
 }
 ```
 *Process exits with code `1`.*
@@ -272,16 +272,16 @@ Patch the bug in `demo-app/index.html` and re-verify:
 ```bash
 ratchet verify --target .testmuai/tests/complete-the-discounted-pro-plan-purchase_test.md --no-report --json
 ```
-Captured Output:
+Sanitized Output:
 ```json
 {
   "status": "PROVEN",
   "locked": true,
   "summary": "All 4 acceptance criteria verified and proven by Kane CLI.",
   "evidence": {
-    "executionId": "eb8d2e66-367e-46ae-b2d8-39f67b6e66e2",
-    "evidencePack": "/home/user/.testmuai/kaneai/sessions/eb8d2e66-367e-46ae-b2d8-39f67b6e66e2/evidence/711d9320-6597-4d12-8e4f-ee11f3d922e8.evidence",
-    "replayCommand": "kane-cli evidence serve /home/user/.testmuai/kaneai/sessions/eb8d2e66-367e-46ae-b2d8-39f67b6e66e2/evidence/711d9320-6597-4d12-8e4f-ee11f3d922e8.evidence"
+    "executionId": "<session-id>",
+    "evidencePack": ".testmuai/kaneai/sessions/<session-id>/evidence/<evidence-id>.evidence",
+    "replayCommand": "kane-cli evidence serve .testmuai/kaneai/sessions/<session-id>/evidence/<evidence-id>.evidence"
   },
   "coverage": {
     "output": "Coverage: 4 / 4 acceptance criteria proven by Kane CLI (100% proven, 4 designed).",
@@ -289,7 +289,7 @@ Captured Output:
     "coveredCriteria": 4,
     "provenCriteria": 4
   },
-  "timestamp": "2026-11-23T02:49:18.737Z"
+  "timestamp": "2026-11-24T00:00:00.000Z"
 }
 ```
 *Process exits with code `0`. All 4 criteria are proven, and the gate is locked.*
@@ -334,20 +334,25 @@ ratchet hook
 Ratchet provides a native **Model Context Protocol (MCP)** server over stdio. This lets agents in Claude Code, Cursor, Antigravity, and Codex invoke the verification gate via tool calls.
 
 ### Configuration
-Running `ratchet init` automatically prints the exact configuration for your local environment:
+Running `ratchet init` automatically resolves your project's local path and prints the exact ready-to-use configuration:
+```bash
+ratchet init
+```
+
+Example configuration emitted by `ratchet init` (with the local path substituted):
 ```json
 {
   "mcpServers": {
     "ratchet": {
       "command": "node",
       "args": [
-        "/path/to/ratchet/dist/mcp/server.js"
+        "<path-to-project>/dist/mcp/server.js"
       ]
     }
   }
 }
 ```
-Add this snippet to your Antigravity / Claude / Cursor MCP configuration (e.g. `~/.gemini/config/mcp_config.json`). The server runs directly via Node with the compiled entrypoint (`dist/mcp/server.js`).
+Add this snippet to your Antigravity / Claude / Cursor MCP configuration (e.g. `~/.gemini/config/mcp_config.json`). Substitute `<path-to-project>` with your workspace path (or simply copy the exact resolved block printed to your terminal by `ratchet init`). The server runs directly via Node with the compiled entrypoint (`dist/mcp/server.js`).
 
 ### Tools Exposed to Agents
 | Tool Name | Parameters | Description |
