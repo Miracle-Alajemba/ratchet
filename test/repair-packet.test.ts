@@ -114,7 +114,99 @@ test("buildRepairPacket distinguishes confirmed product bug from test execution 
     assert.strictEqual(failPacket.locked, false);
     assert.strictEqual(failPacket.failureAnalysis?.defectType, "test_execution_failure");
     assert.strictEqual(failPacket.failureAnalysis?.isConfirmedProductBug, false);
-    assert.match(failPacket.summary, /Test Execution Failure/);
+    assert.match(failPacket.summary, /Unconfirmed Verification Failure/);
+});
+
+test("buildRepairPacket classifies confirmed: true explicitly as confirmed product defect", () => {
+    const exec: KaneExecResult = {
+        command: "kane-cli testmd run checkout_test.md --agent",
+        args: ["testmd", "run", "checkout_test.md", "--agent"],
+        exitCode: 1,
+        passed: false,
+        stdout: "",
+        stderr: "",
+        commandSurface: "testmd",
+        failures: [{ message: "Step 2 failed" }],
+        events: [
+            {
+                type: "run_end",
+                verdict: {
+                    confirmed: true,
+                    status: "failed",
+                    family: "application_issue",
+                    root_cause: "Promo code SAVE20 rejected as invalid",
+                    bug_title: "SAVE20 rejected",
+                },
+            },
+        ],
+    };
+
+    const packet = buildRepairPacket(exec);
+    assert.strictEqual(packet.failureAnalysis?.isConfirmedProductBug, true);
+    assert.strictEqual(packet.failureAnalysis?.defectType, "product_defect");
+    assert.match(packet.summary, /Confirmed Product Defect/);
+});
+
+test("buildRepairPacket classifies confirmed: false with application_issue family as unconfirmed verification failure", () => {
+    const exec: KaneExecResult = {
+        command: "kane-cli testmd run checkout_test.md --agent",
+        args: ["testmd", "run", "checkout_test.md", "--agent"],
+        exitCode: 1,
+        passed: false,
+        stdout: "",
+        stderr: "",
+        commandSurface: "testmd",
+        failures: [{ message: "Step failed" }],
+        events: [
+            {
+                type: "run_end",
+                verdict: {
+                    confirmed: false,
+                    family: "application_issue",
+                    root_cause: "Suspected UI timing issue",
+                    bug_title: "Suspected UI timing issue",
+                },
+            },
+        ],
+    };
+
+    const packet = buildRepairPacket(exec);
+    assert.strictEqual(packet.failureAnalysis?.isConfirmedProductBug, false);
+    assert.strictEqual(packet.failureAnalysis?.defectType, "test_execution_failure");
+    assert.match(packet.summary, /Unconfirmed Verification Failure/);
+    assert.doesNotMatch(packet.summary, /Confirmed Product Defect/);
+});
+
+test("buildRepairPacket classifies 740 result code without explicit confirmation as unconfirmed verification failure", () => {
+    const exec: KaneExecResult = {
+        command: "kane-cli testmd run checkout_test.md --agent",
+        args: ["testmd", "run", "checkout_test.md", "--agent"],
+        exitCode: 1,
+        passed: false,
+        stdout: "",
+        stderr: "",
+        commandSurface: "testmd",
+        failures: [{ message: "Step failed" }],
+        events: [
+            {
+                type: "run_end",
+                result_code: 740,
+                reason_code: "assertion_error.confirmed_product_bug",
+                verdict: {
+                    status: "failed",
+                    result_code: 740,
+                    family: "application_issue",
+                    root_cause: "Assertion check failed",
+                },
+            },
+        ],
+    };
+
+    const packet = buildRepairPacket(exec);
+    assert.strictEqual(packet.failureAnalysis?.isConfirmedProductBug, false);
+    assert.strictEqual(packet.failureAnalysis?.defectType, "test_execution_failure");
+    assert.match(packet.summary, /Unconfirmed Verification Failure/);
+    assert.doesNotMatch(packet.summary, /Confirmed Product Defect/);
 });
 
 test("buildRepairPacket builds diagnostics only from Kane's actual failure fields without inventing values", () => {

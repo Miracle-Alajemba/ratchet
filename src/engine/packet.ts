@@ -131,13 +131,7 @@ export function buildRepairPacket(
 
         if (evt.verdict && typeof evt.verdict === "object") {
             const v = evt.verdict;
-            if (
-                v.confirmed === true ||
-                v.family === "application_issue" ||
-                v.result_code === 740 ||
-                evt.reason_code?.includes("confirmed_product_bug") ||
-                evt.result_code === 740
-            ) {
+            if (v.confirmed === true) {
                 isConfirmedProductBug = true;
             }
 
@@ -174,14 +168,17 @@ export function buildRepairPacket(
         }
 
         if (evt.type === "test_md_bug_verdict") {
-            if (evt.confirmed === true || evt.family === "application_issue") {
+            if (evt.confirmed === true) {
                 isConfirmedProductBug = true;
             }
             if (evt.one_liner && rootCause === "unavailable") {
                 rootCause = evt.one_liner;
             }
-            if (evt.bug_title && !diagnostics.includes(`Confirmed Bug: ${evt.bug_title}`)) {
-                diagnostics.push(`Confirmed Bug: ${evt.bug_title}`);
+            if (evt.bug_title) {
+                const label = evt.confirmed === true ? `Confirmed Bug: ${evt.bug_title}` : `Bug: ${evt.bug_title}`;
+                if (!diagnostics.includes(label)) {
+                    diagnostics.push(label);
+                }
             }
             if (evt.step_index !== undefined && failedStep === undefined) {
                 failedStep = evt.step_index;
@@ -260,7 +257,7 @@ export function buildRepairPacket(
 
     const summaryPrefix = isConfirmedProductBug
         ? "Ratchet verification gate blocked (Confirmed Product Defect)"
-        : "Ratchet verification gate blocked (Test Execution Failure)";
+        : "Ratchet verification gate blocked (Unconfirmed Verification Failure)";
 
     return {
         status: "BLOCKED",

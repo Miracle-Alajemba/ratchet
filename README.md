@@ -1,4 +1,4 @@
-# Ratchet 🔒
+ # Ratchet 🔒
 
 > **Stop AI coding agents from claiming *"Done!"* until a real browser proves every requirement works.**
 
@@ -210,41 +210,59 @@ ratchet sync --prd PRD.md
 ```
 Output:
 ```text
-⚙ Syncing spec from PRD.md...
-✔ Context ingested & acceptance tests designed.
-Coverage: 3 / 3 acceptance criteria mapped to Kane CLI scenarios (100%).
+⚙ Syncing spec from PRD.md via Kane CLI assurance workflow...
+✔ Kane context ingested & acceptance tests designed.
+  PRD Path: PRD.md
+  Generated test files: complete-the-discounted-pro-plan-purchase_test.md
+
+Acceptance Criteria to Kane Tests Mapping:
+  ✔ [ac-1] Base price displays $100.
+      ↳ Test: t-2 in complete-the-discounted-pro-plan-purchase_test.md
+  ✔ [ac-2] Entering promo code SAVE20 and clicking "Apply" updates the total to $80...
+      ↳ Test: t-2 in complete-the-discounted-pro-plan-purchase_test.md
+  ✔ [ac-3] ...shows "Discount applied".
+      ↳ Test: t-2 in complete-the-discounted-pro-plan-purchase_test.md
+  ✔ [ac-4] Clicking "Complete Order" after applying SAVE20 displays "Order Confirmed: $80 paid".
+      ↳ Test: t-2 in complete-the-discounted-pro-plan-purchase_test.md
+
+Coverage: 4 / 4 acceptance criteria mapped to Kane CLI scenarios (100% designed, 4 total).
 ```
 
 ### 4. Verification Gate Catches Defect
 When `demo-app/index.html` contains a bug where `SAVE20` fails to discount:
 ```bash
-ratchet verify --no-report --json
+ratchet verify --target .testmuai/tests/complete-the-discounted-pro-plan-purchase_test.md --no-report --json
 ```
-Output:
+Captured Output:
 ```json
 {
   "status": "BLOCKED",
   "locked": false,
-  "summary": "Ratchet verification gate blocked: promo code not applied",
+  "summary": "Ratchet verification gate blocked (Confirmed Product Defect): The checkout treats SAVE20 as invalid even though this checkout flow requires it to reduce the price from $100 to $80.",
   "evidence": {
-    "executionId": "cce2a7d0-b1e2-4f45-9e2a-74cf83cc3a26",
-    "evidencePack": "demo-app/.testmuai/evidence/cce2a7d0.evidence",
-    "replayCommand": "kane-cli evidence serve demo-app/.testmuai/evidence/cce2a7d0.evidence"
+    "executionId": "f61ce14d-fbda-4290-80c0-1d38c458a13b",
+    "evidencePack": "/home/user/.testmuai/kaneai/sessions/f61ce14d-fbda-4290-80c0-1d38c458a13b/evidence/a131c194-9345-49f9-8b82-a6a90fb5193b.evidence",
+    "replayCommand": "kane-cli evidence serve /home/user/.testmuai/kaneai/sessions/f61ce14d-fbda-4290-80c0-1d38c458a13b/evidence/a131c194-9345-49f9-8b82-a6a90fb5193b.evidence"
   },
   "failureAnalysis": {
-    "rootCause": "AP determined agent is stuck — no viable actions remain",
+    "defectType": "product_defect",
+    "isConfirmedProductBug": true,
+    "rootCause": "The checkout treats SAVE20 as invalid even though this checkout flow requires it to reduce the price from $100 to $80.",
     "failedStep": 2,
-    "memoryDiffs": [
-      {
-        "check": "Total price after promo SAVE20",
-        "expected": "$80",
-        "actual": "$100"
-      }
+    "memoryDiffs": [],
+    "diagnostics": [
+      "The checkout rejects SAVE20 instead of applying the expected discount.",
+      "Bug: SAVE20 promo code rejected at Pro Plan checkout",
+      "Suggestion: Check the promo-code rules and configuration for the Pro Plan checkout so SAVE20 is accepted and shows “Discount applied” with a total of $80."
     ]
   },
   "coverage": {
-    "output": "Coverage: 3 / 3 acceptance criteria mapped to Kane CLI scenarios (100%)."
-  }
+    "output": "Coverage: 1 / 4 acceptance criteria proven by Kane CLI (25% proven, 4 designed).",
+    "totalCriteria": 4,
+    "coveredCriteria": 4,
+    "provenCriteria": 1
+  },
+  "timestamp": "2026-11-23T02:26:44.225Z"
 }
 ```
 *Process exits with code `1`.*
@@ -252,25 +270,29 @@ Output:
 ### 5. Self-Healing & Lock
 Patch the bug in `demo-app/index.html` and re-verify:
 ```bash
-ratchet verify --no-report --json
+ratchet verify --target .testmuai/tests/complete-the-discounted-pro-plan-purchase_test.md --no-report --json
 ```
-Output:
+Captured Output:
 ```json
 {
   "status": "PROVEN",
   "locked": true,
-  "summary": "All acceptance criteria verified and proven by Kane CLI.",
+  "summary": "All 4 acceptance criteria verified and proven by Kane CLI.",
   "evidence": {
-    "executionId": "1f053511-38d8-40f7-865f-44957fb033a4",
-    "evidencePack": "demo-app/.testmuai/evidence/1f053511.evidence",
-    "replayCommand": "kane-cli evidence serve demo-app/.testmuai/evidence/1f053511.evidence"
+    "executionId": "eb8d2e66-367e-46ae-b2d8-39f67b6e66e2",
+    "evidencePack": "/home/user/.testmuai/kaneai/sessions/eb8d2e66-367e-46ae-b2d8-39f67b6e66e2/evidence/711d9320-6597-4d12-8e4f-ee11f3d922e8.evidence",
+    "replayCommand": "kane-cli evidence serve /home/user/.testmuai/kaneai/sessions/eb8d2e66-367e-46ae-b2d8-39f67b6e66e2/evidence/711d9320-6597-4d12-8e4f-ee11f3d922e8.evidence"
   },
   "coverage": {
-    "output": "Coverage: 3 / 3 acceptance criteria mapped to Kane CLI scenarios (100%)."
-  }
+    "output": "Coverage: 4 / 4 acceptance criteria proven by Kane CLI (100% proven, 4 designed).",
+    "totalCriteria": 4,
+    "coveredCriteria": 4,
+    "provenCriteria": 4
+  },
+  "timestamp": "2026-11-23T02:49:18.737Z"
 }
 ```
-*Process exits with code `0`. Code is locked and ready to push.*
+*Process exits with code `0`. All 4 criteria are proven, and the gate is locked.*
 
 ---
 
@@ -312,17 +334,20 @@ ratchet hook
 Ratchet provides a native **Model Context Protocol (MCP)** server over stdio. This lets agents in Claude Code, Cursor, Antigravity, and Codex invoke the verification gate via tool calls.
 
 ### Configuration
-Add Ratchet to your MCP settings (`~/.gemini/config/mcp_config.json` or equivalent):
+Running `ratchet init` automatically prints the exact configuration for your local environment:
 ```json
 {
   "mcpServers": {
     "ratchet": {
       "command": "node",
-      "args": ["/absolute/path/to/ratchet/bin/ratchet.js", "mcp"]
+      "args": [
+        "/path/to/ratchet/dist/mcp/server.js"
+      ]
     }
   }
 }
 ```
+Add this snippet to your Antigravity / Claude / Cursor MCP configuration (e.g. `~/.gemini/config/mcp_config.json`). The server runs directly via Node with the compiled entrypoint (`dist/mcp/server.js`).
 
 ### Tools Exposed to Agents
 | Tool Name | Parameters | Description |
@@ -338,8 +363,24 @@ Add Ratchet to your MCP settings (`~/.gemini/config/mcp_config.json` or equivale
 A `RepairPacket` is a structured TypeScript object designed to give coding LLMs everything needed to debug failures in a single turn without context explosion:
 
 ```typescript
+export interface MemoryDiff {
+  check: string;
+  expected: string | number | boolean;
+  actual: string | number | boolean;
+}
+
+export interface FailureAnalysis {
+  defectType: "product_defect" | "test_execution_failure";
+  isConfirmedProductBug: boolean;
+  rootCause: string;
+  failedStep?: string | number;
+  failedMember?: string;
+  memoryDiffs: MemoryDiff[];
+  diagnostics?: string[];
+}
+
 export interface RepairPacket {
-  status: "PROVEN" | "BLOCKED";
+  status: "PROVEN" | "PASSED_BUT_UNPROVEN" | "BLOCKED";
   locked: boolean;
   summary: string;
   evidence: {
@@ -347,21 +388,24 @@ export interface RepairPacket {
     evidencePack?: string;
     replayCommand?: string;
   };
-  failureAnalysis?: {
-    rootCause: string;
-    failedStep?: string | number;
-    memoryDiffs: Array<{
-      check: string;
-      expected: any;
-      actual: any;
-    }>;
-  };
-  coverage: {
+  failureAnalysis?: FailureAnalysis;
+  coverage?: {
     output: string;
+    totalCriteria?: number;
+    coveredCriteria?: number;
+    provenCriteria?: number;
+    gaps?: any[];
   };
   timestamp: string;
 }
 ```
+
+### Verification States:
+* **`PROVEN` (`locked: true`, exit code `0`):** Execution completed cleanly and 100% of the owed acceptance criteria were verified and proven by Kane CLI in Chrome.
+* **`PASSED_BUT_UNPROVEN` (`locked: false`, exit code `1`):** The test process completed without mechanical errors, but Kane CLI reports 0 (or incomplete) proven criteria (e.g., no binding `@verifies` scenarios were exercised). Ratchet never grants lock without proven coverage.
+* **`BLOCKED` (`locked: false`, exit code `1`):** A verification failure occurred. Ratchet categorizes the failure:
+  * **Confirmed Product Defect (`defectType: "product_defect"`, `isConfirmedProductBug: true`):** Set **only** when Kane CLI's structured verdict explicitly confirms an application defect (`confirmed === true`).
+  * **Unconfirmed Verification Failure (`defectType: "test_execution_failure"`, `isConfirmedProductBug: false`):** Assigned when an assertion failure, browser timeout, or step failure occurs without an explicit `confirmed: true` bug verdict (e.g. `family: "application_issue"` or `result_code: 740` alone is not confirmation). Ratchet will not falsely claim a product bug unless Kane explicitly confirms it.
 
 ---
 
