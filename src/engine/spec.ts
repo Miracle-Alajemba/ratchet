@@ -248,7 +248,7 @@ export function isDesignSuccessful(
 
         // Any code other than EMPTY_DESIGN, NOTHING_SAVED, or AGENT_FAILED is an immediate failure
         for (const c of allEventCodes) {
-            if (c !== "EMPTY_DESIGN" && c !== "NOTHING_SAVED" && c !== "AGENT_FAILED") {
+            if (c !== "EMPTY_DESIGN" && c !== "NOTHING_SAVED" && c !== "AGENT_FAILED" && c !== "SAVE_FAILED" && c !== "SAVE_FAILED") {
                 return false;
             }
         }
