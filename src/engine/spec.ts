@@ -201,9 +201,9 @@ export function isDesignSuccessful(
     const emptyDesignString = "EMPTY_DESIGN: finalize_design produced nothing to commit";
     const nothingSavedString = "the design session stopped before saving anything";
     const isWordingUnchanged =
-        combined.toLowerCase().includes("wording") &&
+        combined.toLowerCase().includes("unchanged") ||
         combined.toLowerCase().includes("identical") ||
-        combined.toLowerCase().includes("unchanged");
+        combined.toLowerCase().includes("no design changes");
 
     const hasEmptyDesignSignal = combined.includes(emptyDesignString);
     const hasNothingSavedSignal =
@@ -260,7 +260,7 @@ export function isDesignSuccessful(
         if (allEventCodes.includes("NOTHING_SAVED")) {
             // Must be accompanied by note confirming unchanged source wording
             const noteText = `${evt.note || ""} ${evt.message || ""} ${evt.data?.note || ""} ${combined}`.toLowerCase();
-            if (noteText.includes("unchanged") || noteText.includes("identical")) {
+            if (noteText.includes("unchanged") || noteText.includes("identical") || noteText.includes("no design changes")) {
                 hasUnderlyingRecognizedNoop = true;
             } else {
                 return false; // Reject arbitrary NOTHING_SAVED
@@ -378,14 +378,89 @@ export function checkKanePreconditions(workdir: string): void {
     }
 }
 
-export function inspectAssuranceMapping(workdir: string): SpecCoverageReport {
+export function inspectAssuranceMapping(
+    workdir: string,
+    prdPath?: string,
+    customTestFiles?: string[]
+): SpecCoverageReport {
+    const manifestPath = path.join(workdir, ".testmuai", ".ratchet_manifest.json");
+    let manifest: RatchetManifest | null = null;
+    if (fs.existsSync(manifestPath)) {
+        try {
+            manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+        } catch {}
+    }
+
+    // Determine target PRD content to help filter stale/superseded criteria
+    const targetPrd = prdPath || manifest?.prdPath || "PRD.md";
+    const resolvedPrd = path.isAbsolute(targetPrd) ? targetPrd : path.join(workdir, targetPrd);
+    let prdContent = "";
+    if (fs.existsSync(resolvedPrd)) {
+        try {
+            prdContent = fs.readFileSync(resolvedPrd, "utf8");
+        } catch {}
+    }
+
+    // Determine active test files for this PRD
+    let activeTestFiles: string[] = [];
+    if (customTestFiles && customTestFiles.length > 0) {
+        activeTestFiles = customTestFiles;
+    } else if (manifest && manifest.testFiles && Object.keys(manifest.testFiles).length > 0) {
+        activeTestFiles = Object.keys(manifest.testFiles);
+    } else {
+        const testsDir = path.join(workdir, ".testmuai", "tests");
+        activeTestFiles = fs.existsSync(testsDir)
+            ? fs.readdirSync(testsDir).filter((f) => f.endsWith("_test.md")).map((f) => path.join(".testmuai", "tests", f))
+            : [];
+    }
+
+    // Scan active test files for real test files and their @verifies markers
+    const acToTestMap: Record<string, { testId?: string; file: string; rawId: string }> = {};
+
+    for (const relFile of activeTestFiles) {
+        let fullPath = path.isAbsolute(relFile) ? relFile : path.join(workdir, relFile);
+        if (!fs.existsSync(fullPath)) {
+            const underTests = path.join(workdir, ".testmuai", "tests", relFile);
+            if (fs.existsSync(underTests)) {
+                fullPath = underTests;
+            } else {
+                continue;
+            }
+        }
+        const content = fs.readFileSync(fullPath, "utf8");
+
+        // Parse frontmatter assurance id if present
+        let testId: string | undefined = undefined;
+        const idMatch = content.match(/assurance:\s*\n\s*id:\s*([^\s\n]+)/);
+        if (idMatch) {
+            testId = idMatch[1].toLowerCase();
+        }
+
+        // Match all @verifies ac-X, ac-Y
+        const verifiesMatches = content.matchAll(/@verifies\s+([^\n\r]+)/gi);
+        for (const match of verifiesMatches) {
+            const rawAcs = match[1].split(",");
+            for (const rawAc of rawAcs) {
+                const trimmedAc = rawAc.trim();
+                const acIdLower = trimmedAc.toLowerCase();
+                if (acIdLower) {
+                    acToTestMap[acIdLower] = {
+                        testId,
+                        file: path.relative(workdir, fullPath),
+                        rawId: trimmedAc,
+                    };
+                }
+            }
+        }
+    }
+
     // 1. Run kane-cli context list --json
     const listRes = runKaneSync(["context", "list", "--json"], workdir);
     if (listRes.code !== 0) {
         throw new Error(`Failed to list Kane context: ${listRes.stderr || listRes.stdout}`);
     }
 
-    const acNodes: Array<{ id: string; title: string; trust?: string }> = [];
+    const acNodes: Array<{ id: string; title: string; trust?: string; fresh?: string }> = [];
     const testNodes: Array<{ id: string; title: string; trust?: string }> = [];
     const gapNodes: Array<{ id: string; title: string }> = [];
 
@@ -394,7 +469,14 @@ export function inspectAssuranceMapping(workdir: string): SpecCoverageReport {
         if (!trimmed.startsWith("{")) continue;
         try {
             const node = JSON.parse(trimmed);
-            if (node.label === "ac") acNodes.push({ id: node.id, title: node.title, trust: node.trust });
+            if (node.label === "ac") {
+                acNodes.push({
+                    id: node.id,
+                    title: node.title || (node as any).content?.text || "",
+                    trust: node.trust,
+                    fresh: node.fresh,
+                });
+            }
             if (node.label === "test") testNodes.push({ id: node.id, title: node.title, trust: node.trust });
             if (node.label === "gap") gapNodes.push({ id: node.id, title: node.title });
         } catch {}
@@ -418,89 +500,47 @@ export function inspectAssuranceMapping(workdir: string): SpecCoverageReport {
         } catch {}
     }
 
-    // 4. Scan .testmuai/tests/ for real test files and their @verifies markers
-    const testsDir = path.join(workdir, ".testmuai", "tests");
-    const testFiles = fs.existsSync(testsDir)
-        ? fs.readdirSync(testsDir).filter((f) => f.endsWith("_test.md"))
-        : [];
-
-    const acToTestMap: Record<string, { testId?: string; file: string }> = {};
-
-    for (const file of testFiles) {
-        const fullPath = path.join(testsDir, file);
-        const content = fs.readFileSync(fullPath, "utf8");
-
-        // Parse frontmatter assurance id if present
-        let testId: string | undefined = undefined;
-        const idMatch = content.match(/assurance:\s*\n\s*id:\s*([^\s\n]+)/);
-        if (idMatch) {
-            testId = idMatch[1].toLowerCase();
-        }
-
-        // Match all @verifies ac-X, ac-Y
-        const verifiesMatches = content.matchAll(/@verifies\s+([^\n\r]+)/gi);
-        for (const match of verifiesMatches) {
-            const rawAcs = match[1].split(",");
-            for (const rawAc of rawAcs) {
-                const acId = rawAc.trim().toLowerCase();
-                if (acId) {
-                    acToTestMap[acId] = {
-                        testId,
-                        file: path.relative(workdir, fullPath),
-                    };
-                }
-            }
-        }
-    }
-
-    // 5. Map each AC
+    // 4. Map criteria: scope to active test files and active PRD
     const criteria: CriterionMapping[] = [];
-    let coveredCount = 0;
+    const mappedAcIds = new Set<string>();
 
-    for (const ac of acNodes) {
-        const mapped = acToTestMap[ac.id.toLowerCase()];
-        const uc = coverJson?.perAc?.[ac.id]?.uc;
-        const isProven = coverJson?.perAc?.[ac.id]?.state === "proven";
-        const isUnreviewed = ac.trust === "derived" || ac.trust === "hold";
+    for (const [acIdLower, mapping] of Object.entries(acToTestMap)) {
+        mappedAcIds.add(acIdLower);
+        const node = acNodes.find((n) => n.id.toLowerCase() === acIdLower);
+        const manifestCriterion = manifest?.criteria?.find((c) => c.id.toLowerCase() === acIdLower);
 
-        if (mapped) {
-            coveredCount++;
-            criteria.push({
-                id: ac.id,
-                text: ac.title,
-                usecaseId: uc,
-                testId: mapped.testId,
-                testFile: mapped.file,
-                status: "MAPPED",
-                unreviewed: isUnreviewed,
-                proven: isProven,
-            });
-        } else {
-            // Check if there is an explicit gap reason from cover gaps
-            const gap = gapsJson?.other?.find(
-                (g: any) => g.ref === ac.id || g.id === ac.id
-            );
-            criteria.push({
-                id: ac.id,
-                text: ac.title,
-                usecaseId: uc,
-                status: "GAP",
-                unreviewed: isUnreviewed,
-                proven: false,
-                gapReason: gap?.why || gap?.risk_rationale || "No generated Kane CLI test verifies this criterion",
-            });
-        }
+        const id = node?.id || mapping.rawId || acIdLower;
+        const text = node?.title || manifestCriterion?.text || `Acceptance criterion ${id}`;
+        const uc = coverJson?.perAc?.[id]?.uc || coverJson?.perAc?.[acIdLower]?.uc || manifestCriterion?.usecaseId;
+        const isUnreviewed = node?.trust === "derived" || node?.trust === "hold";
+
+        const isProven =
+            coverJson?.perAc?.[id]?.state === "proven" ||
+            coverJson?.perAc?.[acIdLower]?.state === "proven" ||
+            manifestCriterion?.proven === true;
+
+        criteria.push({
+            id,
+            text,
+            usecaseId: uc,
+            testId: mapping.testId,
+            testFile: mapping.file,
+            status: "MAPPED",
+            unreviewed: isUnreviewed,
+            proven: Boolean(isProven),
+        });
     }
 
     const total = criteria.length;
-    const percentage = total > 0 ? Math.round((coveredCount / total) * 100) : 0;
-    const gapsCount = total - coveredCount;
+    const coveredCount = criteria.filter((c) => c.status === "MAPPED").length;
+    const provenCount = criteria.filter((c) => c.proven).length;
+    const gapsCount = criteria.filter((c) => c.status === "GAP").length;
+    const percentage = total > 0 ? Math.round((provenCount / total) * 100) : 0;
     const unreviewedCount = criteria.filter((c) => c.unreviewed).length;
-    const provenCount = coverJson?.criteria?.proven ?? 0;
 
     let output = "";
     if (provenCount > 0) {
-        output = `Coverage: ${provenCount} / ${total} acceptance criteria proven by Kane CLI (${Math.round((provenCount / total) * 100)}% proven, ${coveredCount} designed).`;
+        output = `Coverage: ${provenCount} / ${total} acceptance criteria proven by Kane CLI (${percentage}% proven, ${coveredCount} designed).`;
     } else {
         output = `Coverage: 0 / ${total} acceptance criteria proven by Kane CLI (0% proven, ${coveredCount} designed/staged${unreviewedCount > 0 ? ", unreviewed" : ""}).`;
     }
@@ -512,7 +552,7 @@ export function inspectAssuranceMapping(workdir: string): SpecCoverageReport {
         totalCriteria: total,
         coveredCriteria: coveredCount,
         provenCriteria: provenCount,
-        percentage: total > 0 ? Math.round((provenCount / total) * 100) : 0,
+        percentage,
         gapsCount,
         criteria,
         rawCover: coverJson,
@@ -586,18 +626,16 @@ export function syncSpecWithKane(
     }
 
     // 5. Inspect assurance mapping and genuine coverage gaps
-    const coverage = inspectAssuranceMapping(workdir);
-
-    // 6. Record manifest to detect stale or altered generated tests before verification
     const testsDir = path.join(workdir, ".testmuai", "tests");
     const testFiles = fs.existsSync(testsDir)
-        ? fs.readdirSync(testsDir).filter((f) => f.endsWith("_test.md"))
+        ? fs.readdirSync(testsDir).filter((f) => f.endsWith("_test.md")).map((f) => path.join(".testmuai", "tests", f))
         : [];
+    const coverage = inspectAssuranceMapping(workdir, resolvedPrd, testFiles);
 
+    // 6. Record manifest to detect stale or altered generated tests before verification
     const testFileHashes: Record<string, string> = {};
-    for (const f of testFiles) {
-        const p = path.join(testsDir, f);
-        const rel = path.relative(workdir, p);
+    for (const rel of testFiles) {
+        const p = path.join(workdir, rel);
         testFileHashes[rel] = computeFileSha256(p);
     }
 
@@ -688,10 +726,89 @@ export function detectStaleOrAltered(
     return { ok: true };
 }
 
-export function getCoverageStatus(workdir: string = process.cwd()): SpecCoverageReport {
+export function markManifestCriteriaProven(
+    workdir: string = process.cwd(),
+    passedTestFiles?: string[]
+): RatchetManifest | null {
+    const manifestPath = path.join(workdir, ".testmuai", ".ratchet_manifest.json");
+    if (!fs.existsSync(manifestPath)) {
+        return null;
+    }
+
+    let manifest: RatchetManifest;
     try {
-        return inspectAssuranceMapping(workdir);
+        manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
     } catch {
+        return null;
+    }
+
+    // Refresh criteria against active test files and PRD
+    try {
+        const coverage = inspectAssuranceMapping(workdir, manifest.prdPath);
+        if (coverage && Array.isArray(coverage.criteria) && coverage.criteria.length > 0) {
+            manifest.criteria = coverage.criteria;
+        }
+    } catch {
+        // keep existing manifest.criteria if inspection fails
+    }
+
+    if (!Array.isArray(manifest.criteria) || manifest.criteria.length === 0) {
+        return manifest;
+    }
+
+    const normalizedPassed = passedTestFiles?.map((f) => path.basename(f).toLowerCase());
+
+    for (const criterion of manifest.criteria) {
+        if (criterion.status !== "MAPPED") continue;
+
+        if (!normalizedPassed || normalizedPassed.length === 0) {
+            criterion.proven = true;
+        } else if (criterion.testFile) {
+            const baseFile = path.basename(criterion.testFile).toLowerCase();
+            if (normalizedPassed.includes(baseFile)) {
+                criterion.proven = true;
+            }
+        }
+    }
+
+    try {
+        fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2), "utf8");
+    } catch {
+        // ignore write error
+    }
+
+    return manifest;
+}
+
+export function getCoverageStatus(
+    workdir: string = process.cwd(),
+    prdPath?: string
+): SpecCoverageReport {
+    try {
+        return inspectAssuranceMapping(workdir, prdPath);
+    } catch {
+        const manifestPath = path.join(workdir, ".testmuai", ".ratchet_manifest.json");
+        if (fs.existsSync(manifestPath)) {
+            try {
+                const manifest: RatchetManifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+                const criteria = manifest.criteria || [];
+                const total = criteria.length;
+                const coveredCount = criteria.filter((c) => c.status === "MAPPED").length;
+                const provenCount = criteria.filter((c) => c.proven).length;
+                const gapsCount = criteria.filter((c) => c.status === "GAP").length;
+                const percentage = total > 0 ? Math.round((provenCount / total) * 100) : 0;
+                return {
+                    totalCriteria: total,
+                    coveredCriteria: coveredCount,
+                    provenCriteria: provenCount,
+                    percentage,
+                    gapsCount,
+                    criteria,
+                    output: `Coverage: ${provenCount} / ${total} acceptance criteria proven by Kane CLI (${percentage}% proven, ${coveredCount} designed).`,
+                };
+            } catch {}
+        }
+
         return {
             totalCriteria: 0,
             coveredCriteria: 0,

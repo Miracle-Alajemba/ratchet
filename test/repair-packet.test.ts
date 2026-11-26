@@ -51,7 +51,37 @@ test("buildRepairPacket returns PASSED_BUT_UNPROVEN and locked=false when run pa
     });
     assert.strictEqual(packet.status, "PASSED_BUT_UNPROVEN");
     assert.strictEqual(packet.locked, false);
-    assert.match(packet.summary, /0 of 3 criteria proven/);
+    assert.strictEqual(
+        packet.summary,
+        "Ratchet verification gate unproven: Execution passed but Kane CLI reports 0 of 3 criteria proven (no binding assurance scenarios proven)."
+    );
+});
+
+test("buildRepairPacket omits unproven suffix when 0 < provenCriteria < totalCriteria", () => {
+    const exec: KaneExecResult = {
+        command: "kane-cli testrun run --agent",
+        args: ["testrun", "run", "--agent"],
+        exitCode: 0,
+        passed: true,
+        stdout: "",
+        stderr: "",
+        events: [],
+        commandSurface: "testrun",
+        executionId: "exec-partial",
+        failures: [],
+    };
+
+    const packet = buildRepairPacket(exec, "Coverage: 2 / 3 criteria proven (67% proven)", {
+        totalCriteria: 3,
+        coveredCriteria: 3,
+        provenCriteria: 2,
+    });
+    assert.strictEqual(packet.status, "PASSED_BUT_UNPROVEN");
+    assert.strictEqual(packet.locked, false);
+    assert.strictEqual(
+        packet.summary,
+        "Ratchet verification gate unproven: Execution passed but Kane CLI reports 2 of 3 criteria proven."
+    );
 });
 
 test("buildRepairPacket distinguishes confirmed product bug from test execution failure", () => {

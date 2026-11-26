@@ -8,6 +8,8 @@ import {
     detectStaleOrAltered,
     isDesignSuccessful,
     RatchetManifest,
+    getCoverageStatus,
+    markManifestCriteriaProven,
 } from "../src/engine/spec.js";
 
 test("detectStaleOrAltered passes when PRD and generated tests are unmodified", () => {
@@ -814,4 +816,63 @@ test("isDesignSuccessful treats Kane EMPTY_DESIGN as success with exact cover ga
         ),
         false
     );
+});
+
+test("markManifestCriteriaProven updates manifest for passing test files and refreshes proven state", () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "ratchet-mark-"));
+    const prdPath = path.join(tmpDir, "PRD.md");
+    fs.writeFileSync(prdPath, "# Story\n- Criterion 1\n- Criterion 2\n", "utf8");
+
+    const testsDir = path.join(tmpDir, ".testmuai", "tests");
+    fs.mkdirSync(testsDir, { recursive: true });
+    const testFile1 = path.join(testsDir, "flow1_test.md");
+    const testFile2 = path.join(testsDir, "flow2_test.md");
+    fs.writeFileSync(testFile1, "## Step 1 @verifies ac-1\n", "utf8");
+    fs.writeFileSync(testFile2, "## Step 1 @verifies ac-2\n", "utf8");
+
+    const manifest: RatchetManifest = {
+        manifestVersion: 1,
+        syncedAt: new Date().toISOString(),
+        prdPath: "PRD.md",
+        prdHash: computeFileSha256(prdPath),
+        testFiles: {
+            [path.relative(tmpDir, testFile1)]: computeFileSha256(testFile1),
+            [path.relative(tmpDir, testFile2)]: computeFileSha256(testFile2),
+        },
+        criteria: [
+            { id: "ac-1", text: "Criterion 1", status: "MAPPED", testFile: path.relative(tmpDir, testFile1), proven: false },
+            { id: "ac-2", text: "Criterion 2", status: "MAPPED", testFile: path.relative(tmpDir, testFile2), proven: false },
+        ],
+    };
+
+    fs.writeFileSync(
+        path.join(tmpDir, ".testmuai", ".ratchet_manifest.json"),
+        JSON.stringify(manifest, null, 2),
+        "utf8"
+    );
+
+    // 1. Mark only flow1_test.md as passed
+    markManifestCriteriaProven(tmpDir, [path.relative(tmpDir, testFile1)]);
+    const updated1: RatchetManifest = JSON.parse(
+        fs.readFileSync(path.join(tmpDir, ".testmuai", ".ratchet_manifest.json"), "utf8")
+    );
+    assert.strictEqual(updated1.criteria.find((c) => c.id === "ac-1")?.proven, true);
+    assert.strictEqual(updated1.criteria.find((c) => c.id === "ac-2")?.proven, false);
+
+    // 2. Mark all as passed (no filter)
+    markManifestCriteriaProven(tmpDir);
+    const updated2: RatchetManifest = JSON.parse(
+        fs.readFileSync(path.join(tmpDir, ".testmuai", ".ratchet_manifest.json"), "utf8")
+    );
+    assert.strictEqual(updated2.criteria.find((c) => c.id === "ac-1")?.proven, true);
+    assert.strictEqual(updated2.criteria.find((c) => c.id === "ac-2")?.proven, true);
+
+    // 3. getCoverageStatus evaluates scoped coverage from manifest
+    const coverage = getCoverageStatus(tmpDir, "PRD.md");
+    assert.strictEqual(coverage.totalCriteria, 2);
+    assert.strictEqual(coverage.provenCriteria, 2);
+    assert.strictEqual(coverage.gapsCount, 0);
+    assert.match(coverage.output, /2 \/ 2 acceptance criteria proven/);
+
+    fs.rmSync(tmpDir, { recursive: true, force: true });
 });

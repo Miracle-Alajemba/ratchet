@@ -97,10 +97,11 @@ export function buildRepairPacket(
         }
 
         // Distinct state when execution passes mechanically but Kane reports 0 or partial criteria proven
+        const unprovenSuffix = provenCriteria === 0 ? " (no binding assurance scenarios proven)" : "";
         return {
             status: "PASSED_BUT_UNPROVEN",
             locked: false,
-            summary: `Ratchet verification gate unproven: Execution passed but Kane CLI reports ${provenCriteria} of ${totalCriteria} criteria proven (no binding assurance scenarios proven).`,
+            summary: `Ratchet verification gate unproven: Execution passed but Kane CLI reports ${provenCriteria} of ${totalCriteria} criteria proven${unprovenSuffix}.`,
             evidence: {
                 executionId: exec.executionId ?? "unavailable",
                 evidencePack: exec.evidencePack ?? "unavailable",

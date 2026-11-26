@@ -3,8 +3,8 @@ import { Command } from "commander";
 import chalk from "chalk";
 import fs from "node:fs";
 import path from "node:path";
-import { syncSpecWithKane, getCoverageStatus, detectStaleOrAltered } from "./engine/spec.js";
-import { executeKaneCommand } from "./engine/runner.js";
+import { syncSpecWithKane, getCoverageStatus, detectStaleOrAltered, markManifestCriteriaProven, RatchetManifest } from "./engine/spec.js";
+import { executeKaneCommand, KaneExecResult } from "./engine/runner.js";
 import { buildRepairPacket } from "./engine/packet.js";
 import { installPrePushHook } from "./engine/hook.js";
 
@@ -151,14 +151,50 @@ program
             process.exit(1);
         }
 
-        const kaneArgs = opts.target
-            ? opts.target.endsWith(".md")
-                ? ["testmd", "run", opts.target, "--agent"]
-                : ["run", opts.target, "--agent"]
-            : ["testrun", "run", "--agent"];
+        const manifestPath = path.join(process.cwd(), ".testmuai", ".ratchet_manifest.json");
+        let manifest: RatchetManifest | null = null;
+        if (fs.existsSync(manifestPath)) {
+            try {
+                manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+            } catch {}
+        }
 
-        const exec = await executeKaneCommand(kaneArgs, process.cwd(), opts.report);
-        const coverage = getCoverageStatus(process.cwd());
+        let exec: KaneExecResult;
+        const passedTestFiles: string[] = [];
+
+        if (opts.target) {
+            const kaneArgs = opts.target.endsWith(".md")
+                ? ["testmd", "run", opts.target, "--agent"]
+                : ["run", opts.target, "--agent"];
+            exec = await executeKaneCommand(kaneArgs, process.cwd(), opts.report);
+            if (exec.passed && exec.exitCode === 0) {
+                passedTestFiles.push(opts.target);
+            }
+        } else if (manifest && manifest.testFiles && Object.keys(manifest.testFiles).length > 0) {
+            const syncedTestFiles = Object.keys(manifest.testFiles);
+            let lastExec: KaneExecResult | null = null;
+
+            for (const testFile of syncedTestFiles) {
+                if (!opts.json) {
+                    console.log(chalk.blue(`Running synced test: ${testFile}...`));
+                }
+                const curExec = await executeKaneCommand(["testmd", "run", testFile, "--agent"], process.cwd(), opts.report);
+                lastExec = curExec;
+                if (!curExec.passed || curExec.exitCode !== 0) {
+                    break;
+                }
+                passedTestFiles.push(testFile);
+            }
+            exec = lastExec!;
+        } else {
+            exec = await executeKaneCommand(["testrun", "run", "--agent"], process.cwd(), opts.report);
+        }
+
+        if (exec.passed && exec.exitCode === 0) {
+            markManifestCriteriaProven(process.cwd(), passedTestFiles);
+        }
+
+        const coverage = getCoverageStatus(process.cwd(), opts.prd);
         const packet = buildRepairPacket(exec, coverage.output, coverage);
 
         if (opts.json) {
